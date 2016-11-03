@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright Tieto 2014 Dariusz Kluska -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <stroke android:width="@dimen/mw_inner_border" android:color="@color/mw_transparent_white" />
+</shape>
