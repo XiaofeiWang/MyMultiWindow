@@ -124,7 +124,7 @@ class DisplayContent {
         isDefaultDisplay = mDisplayId == Display.DEFAULT_DISPLAY;
         mService = service;
 
-        StackBox newBox = new StackBox(service, this, null);
+        StackBox newBox = new StackBox(service, this, null, HOME_STACK_ID);
         mStackBoxes.add(newBox);
         TaskStack newStack = new TaskStack(service, HOME_STACK_ID, this);
         newStack.mStackBox = newBox;
@@ -177,23 +177,26 @@ class DisplayContent {
         final int userId = task.mUserId;
         int taskNdx;
         final int numTasks = mTaskHistory.size();
+        boolean isFloating = task.mStack.mStackBox.isFloating();
         if (toTop) {
             for (taskNdx = numTasks - 1; taskNdx >= 0; --taskNdx) {
-                if (mTaskHistory.get(taskNdx).mUserId == userId) {
+                if ((mTaskHistory.get(taskNdx).mUserId == userId) &&
+                		(isFloating || !mTaskHistory.get(taskNdx).mStack.mStackBox.isFloating())) {
                     break;
                 }
             }
             ++taskNdx;
         } else {
             for (taskNdx = 0; taskNdx < numTasks; ++taskNdx) {
-                if (mTaskHistory.get(taskNdx).mUserId == userId) {
+                if ((mTaskHistory.get(taskNdx).mUserId == userId) &&
+                		(!isFloating || mTaskHistory.get(taskNdx).mStack.mStackBox.isFloating())) {
                     break;
                 }
             }
         }
 
         mTaskHistory.add(taskNdx, task);
-        EventLog.writeEvent(EventLogTags.WM_TASK_MOVED, task.taskId, toTop ? 1 : 0, taskNdx);
+        //EventLog.writeEvent(EventLogTags.WM_TASK_MOVED, task.taskId, toTop ? 1 : 0, taskNdx);
     }
 
     void removeTask(Task task) {
@@ -242,17 +245,22 @@ class DisplayContent {
             for (stackBoxNdx = mStackBoxes.size() - 1; stackBoxNdx >= 0; --stackBoxNdx) {
                 final StackBox box = mStackBoxes.get(stackBoxNdx);
                 if (position == StackBox.TASK_STACK_GOES_OVER
-                        || position == StackBox.TASK_STACK_GOES_UNDER) {
+                        || position == StackBox.TASK_STACK_GOES_UNDER
+                        || position == StackBox.TASK_FLOATING) {
                     // Position indicates a new box is added at top level only.
                     if (box.contains(relativeStackBoxId)) {
-                        StackBox newBox = new StackBox(mService, this, null);
+                        StackBox newBox = new StackBox(mService, this, null, position);
                         newStack = new TaskStack(mService, stackId, this);
                         newStack.mStackBox = newBox;
                         newBox.mStack = newStack;
-                        final int offset = position == StackBox.TASK_STACK_GOES_OVER ? 1 : 0;
-                        if (DEBUG_STACK) Slog.d(TAG, "createStack: inserting stack at " +
-                                (stackBoxNdx + offset));
-                        mStackBoxes.add(stackBoxNdx + offset, newBox);
+                        if (position == StackBox.TASK_FLOATING) {
+                        	mStackBoxes.add(newBox);
+                        } else {
+                            final int offset = position == StackBox.TASK_STACK_GOES_OVER ? 1 : 0;
+                            if (DEBUG_STACK) Slog.d(TAG, "createStack: inserting stack at " +
+                                    (stackBoxNdx + offset));
+                            mStackBoxes.add(stackBoxNdx + offset, newBox);
+                        }
                         break;
                     }
                 } else {
@@ -289,9 +297,9 @@ class DisplayContent {
     }
 
     void addStackBox(StackBox box, boolean toTop) {
-        if (mStackBoxes.size() >= 2) {
+        /*if (mStackBoxes.size() >= 2) {
             throw new RuntimeException("addStackBox: Too many toplevel StackBoxes!");
-        }
+        }*/
         mStackBoxes.add(toTop ? mStackBoxes.size() : 0, box);
     }
 
@@ -321,6 +329,7 @@ class DisplayContent {
             info.children[0] = getStackBoxInfo(box.mFirst);
             info.children[1] = getStackBoxInfo(box.mSecond);
         }
+        info.floating = box.isFloating();
         return info;
     }
 
@@ -338,11 +347,11 @@ class DisplayContent {
      * @param toTop Move home to the top of mStackBoxes if true, to the bottom if false.
      * @return true if a change was made, false otherwise.
      */
-    boolean moveHomeStackBox(boolean toTop) {
-        if (DEBUG_STACK) Slog.d(TAG, "moveHomeStackBox: toTop=" + toTop + " Callers=" +
+    boolean moveHomeStackBox(int stackId) {
+        if (DEBUG_STACK) Slog.d(TAG, "moveHomeStackBox: stackId=" + stackId + " Callers=" +
                 Debug.getCallers(4));
-        EventLog.writeEvent(EventLogTags.WM_HOME_STACK_MOVED, toTop ? 1 : 0);
-        switch (mStackBoxes.size()) {
+        EventLog.writeEvent(EventLogTags.WM_HOME_STACK_MOVED, stackId);
+        /*switch (mStackBoxes.size()) {
             case 0: throw new RuntimeException("moveHomeStackBox: No home StackBox!");
             case 1: return false; // Only the home StackBox exists.
             case 2:
@@ -352,7 +361,38 @@ class DisplayContent {
                 }
                 return false;
             default: throw new RuntimeException("moveHomeStackBox: Too many toplevel StackBoxes!");
+        }*/
+
+        /*
+         * Firstly find the stackbox
+         */
+        StackBox stackBox = null;
+        for (StackBox sb : mStackBoxes) {
+            if (sb.getStackId() == stackId) {
+                stackBox = sb;
+                break;
+            }
         }
+        if (stackBox == null) {
+            return false;
+        }
+
+        /*
+         * Secondly add the stackbox to top
+         */
+        mStackBoxes.remove(stackBox);
+        if (stackBox.isFloating()) {
+           mStackBoxes.add(stackBox);
+        } else {
+            int i = 0;
+            for (; i < mStackBoxes.size(); i++) {
+                if (mStackBoxes.get(i).isFloating()) {
+                    break;
+                }
+            }
+            mStackBoxes.add(i, stackBox);
+        }
+        return true;
     }
 
     /**
@@ -451,6 +491,17 @@ class DisplayContent {
         for (int stackBoxNdx = mStackBoxes.size() - 1; stackBoxNdx >= 0; --stackBoxNdx) {
             mStackBoxes.get(stackBoxNdx).close();
         }
+    }
+
+    boolean relayoutStackBox(int stackBoxId, Rect pos) {
+        for (StackBox sb : mStackBoxes) {
+            if ((sb.getStackId() == stackBoxId) &&
+                 (sb.relayoutStackBox(pos))) {
+                layoutNeeded = true;
+                return true;
+            }
+        }
+        return false;
     }
 
     public void dump(String prefix, PrintWriter pw) {

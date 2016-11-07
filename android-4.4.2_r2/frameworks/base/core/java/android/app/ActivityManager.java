@@ -1300,6 +1300,7 @@ public class ActivityManager {
         public StackBoxInfo[] children;
         public int stackId;
         public StackInfo stack;
+        public boolean floating;
 
         @Override
         public int describeContents() {

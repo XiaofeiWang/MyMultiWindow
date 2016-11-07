@@ -4791,7 +4791,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 final boolean isHomeStackTask = stack.isHomeStack();
                 if (isHomeStackTask != displayContent.homeOnTop()) {
                     // First move the stack itself.
-                    displayContent.moveHomeStackBox(isHomeStackTask);
+                    displayContent.moveHomeStackBox(stack.mStackId);
                 }
                 stack.moveTaskToTop(task);
             }

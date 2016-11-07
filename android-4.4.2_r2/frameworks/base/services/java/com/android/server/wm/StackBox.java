@@ -16,14 +16,14 @@
 
 package com.android.server.wm;
 
-import android.graphics.Rect;
-import android.util.Slog;
-
 import static com.android.server.am.ActivityStackSupervisor.HOME_STACK_ID;
 import static com.android.server.wm.WindowManagerService.DEBUG_STACK;
 import static com.android.server.wm.WindowManagerService.TAG;
 
 import java.io.PrintWriter;
+
+import android.graphics.Rect;
+import android.util.Slog;
 
 public class StackBox {
     /** Used with {@link WindowManagerService#createStack}. Dependent on Configuration LTR/RTL. */
@@ -85,7 +85,12 @@ public class StackBox {
     /** Used to keep from reallocating a temporary Rect for propagating bounds to child boxes */
     Rect mTmpRect = new Rect();
 
-    StackBox(WindowManagerService service, DisplayContent displayContent, StackBox parent) {
+    public static final int TASK_FLOATING = 8;
+
+    private boolean mIsFloating = false;
+    private boolean mCrappyRelayouted = false;
+
+    StackBox(WindowManagerService service, DisplayContent displayContent, StackBox parent, int stackType) {
         synchronized (StackBox.class) {
             mStackBoxId = sCurrentBoxId++;
         }
@@ -93,6 +98,7 @@ public class StackBox {
         mService = service;
         mDisplayContent = displayContent;
         mParent = parent;
+        mIsFloating = stackType == TASK_FLOATING;
     }
 
     /** Propagate #layoutNeeded bottom up. */
@@ -220,11 +226,11 @@ public class StackBox {
                 break;
         }
 
-        mFirst = new StackBox(mService, mDisplayContent, this);
+        mFirst = new StackBox(mService, mDisplayContent, this, -1);
         firstStack.mStackBox = mFirst;
         mFirst.mStack = firstStack;
 
-        mSecond = new StackBox(mService, mDisplayContent, this);
+        mSecond = new StackBox(mService, mDisplayContent, this, -1);
         secondStack.mStackBox = mSecond;
         mSecond.mStack = secondStack;
 
@@ -296,7 +302,9 @@ public class StackBox {
         if (mStack != null) {
             change |= !mBounds.equals(bounds);
             if (change) {
-                mBounds.set(bounds);
+            	if (!mCrappyRelayouted) {
+                    mBounds.set(bounds);
+            	}
                 mStack.setBounds(bounds, underStatusBar);
             }
         } else {
@@ -386,11 +394,30 @@ public class StackBox {
         mSecond.close();
     }
 
+    public boolean isFloating() {
+        return mIsFloating;
+    }
+
+    boolean relayoutStackBox(Rect bounds) {
+        mCrappyRelayouted = true;
+        if (mBounds.equals(bounds)) {
+            return false;
+        }
+        mBounds.set(bounds);
+        return true;
+    }
+
+    boolean isCrappyRelayouted() {
+        return mCrappyRelayouted;
+    }
+
     public void dump(String prefix, PrintWriter pw) {
         pw.print(prefix); pw.print("mParent="); pw.println(mParent);
         pw.print(prefix); pw.print("mBounds="); pw.print(mBounds.toShortString());
             pw.print(" mVertical="); pw.print(mVertical);
             pw.print(" layoutNeeded="); pw.println(layoutNeeded);
+            pw.print(" mIsFloating="); pw.println(mIsFloating); 
+            pw.print(" mCrappyRelayouted="); pw.println(mCrappyRelayouted); 
         if (mFirst != null) {
             pw.print(prefix); pw.print("mFirst="); pw.println(System.identityHashCode(mFirst));
             mFirst.dump(prefix + "  ", pw);
@@ -405,7 +432,7 @@ public class StackBox {
     @Override
     public String toString() {
         if (mStack != null) {
-            return "Box{" + hashCode() + " stack=" + mStack.mStackId + "}";
+            return "Box{" + hashCode() + " stack=" + mStack.mStackId + " mIsFloating= " + mIsFloating + "}";
         }
         return "Box{" + hashCode() + " parent=" + System.identityHashCode(mParent)
                 + " first=" + System.identityHashCode(mFirst)
