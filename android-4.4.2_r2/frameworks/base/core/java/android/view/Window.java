@@ -1317,4 +1317,28 @@ public abstract class Window {
      * @param event A key or touch event to inject to this window.
      */
     public void injectInputEvent(InputEvent event) { }
+
+
+    private int mStackBoxId = -1;
+
+    /**
+     * @hide
+     */
+    public void setStackBoxId(int id) {
+        mStackBoxId = id;
+    }
+
+    /**
+     * @hide
+     */
+    public int getStackBoxId() {
+        return mStackBoxId;
+    }
+
+    /**
+     * @hide
+     */
+    public boolean isMultiWindowPanel() {
+        return mStackBoxId != -1;
+    }
 }

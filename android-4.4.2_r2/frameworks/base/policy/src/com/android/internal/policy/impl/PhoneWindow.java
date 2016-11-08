@@ -3111,8 +3111,11 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
         }
         if (mContentParent == null) {
-            //mContentParent = generateLayout(mDecor);
-            mContentParent = generateLayout(mDecor, mMultiWindowDecorView.getBorderPadding());
+            if (isMultiWindowPanel()) {
+                mContentParent = generateLayout(mDecor, mMultiWindowDecorView.getBorderPadding());
+			} else {
+                mContentParent = generateLayout(mDecor, 0);
+			}
             // Set up decor part of UI to ignore fitsSystemWindows if appropriate.
             mDecor.makeOptionalFitsSystemWindows();
 
@@ -3926,6 +3929,105 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     	decor.addView(mMultiWindowDecorView.getView());
     }
 
+    private class TouchListener implements OnTouchListener {
+        private boolean mRelayoutSuccess = false;
+        private Rect mFrame;
+        private Rect mNewFrame;
+        private int mLastX = 0;
+        private int mLastY = 0;
+        private ResizeWindow mResizeWindow;
+        private ImageButton mMaximizeBtn;
+        private View mParentBtn = null;
+        private Rect mFullScreen;
+
+        public TouchListener(ResizeWindow rw, ImageButton maximizeButton, Rect fullScreen) {
+            mResizeWindow = rw;
+            mMaximizeBtn = maximizeButton;
+            mFullScreen = fullScreen;
+        }
+
+        public TouchListener(ResizeWindow rw, ImageButton maximizeButton, View parent, Rect fullScreen) {
+            mResizeWindow = rw;
+            mMaximizeBtn = maximizeButton;
+            mParentBtn = parent;
+            mFullScreen = fullScreen;
+        }
+
+        private boolean fitWindowInScreen(Rect pos) {
+            int w = pos.width() - 50;
+            if (pos.left < (mFullScreen.left - w)) {
+                return false;
+            }
+            if (pos.right > (mFullScreen.right + w)) {
+                return false;
+            }
+            int h = pos.height() - 50;
+            if (pos.bottom > (mFullScreen.bottom + h)) {
+                return false;
+            }
+            if (pos.top < mFullScreen.top) {
+                pos.bottom = mFullScreen.top + pos.height();
+                pos.top = mFullScreen.top;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int rawX = (int) event.getRawX();
+            int rawY = (int) event.getRawY();
+
+            if(MotionEvent.ACTION_DOWN == event.getAction()){
+                mLastX = (int) event.getRawX();
+                mLastY = (int) event.getRawY();
+                mRelayoutSuccess = false;
+                mFrame = new Rect(mDecor.getViewRootImpl().mWinFrame);
+                if (mParentBtn != null) {
+                    mParentBtn.setPressed(true);
+                }
+            }
+            if(MotionEvent.ACTION_MOVE == event.getAction()){
+                try{
+                    int dx = rawX - mLastX;
+                    int dy = rawY - mLastY;
+                    Rect r = mResizeWindow.resize(mFrame, dx, dy);
+                    if (fitWindowInScreen(r)) {
+                        mNewFrame = r;
+                        mRelayoutSuccess = ActivityManagerNative.getDefault().relayoutWindow(getStackBoxId(), mNewFrame);
+                    }
+                }
+                catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+//            if(MotionEvent.ACTION_UP == event.getAction()){
+//                if (mParentBtn != null) {
+//                    mParentBtn.setPressed(false);
+//                }
+//                try{
+//                    if (mRelayoutSuccess) {
+////                        ActivityManagerNative.getDefault().relayoutWindowCallback(getStackID(), mNewFrame);
+////                        mMaximizeBtn.setImageResource(com.android.internal.R.drawable.mw_btn_maximize);
+//                    }
+//                }
+//                catch (RemoteException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+            if(MotionEvent.ACTION_CANCEL == event.getAction()) {
+                if (mParentBtn != null) {
+                    mParentBtn.setPressed(false);
+                }
+            }
+            return true;
+        }
+    }
+
+    public abstract class ResizeWindow {
+        protected Rect mTmpFrame = new Rect();
+        public abstract Rect resize(Rect frame, int diffX, int diffY);
+    }
+
     private final class MultiWindowDecorView {
         private LinearLayout mHeader;
         private ImageButton mCloseBtn;
@@ -3977,6 +4079,78 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             Drawable icon = ai.loadIcon(pm);
             mAppName.setText(pm.getApplicationLabel(ai));
             mAppIcon.setImageDrawable(icon);
+
+            mHeader.setOnTouchListener(new TouchListener(new ResizeWindow() {
+                @Override
+                public Rect resize(Rect frame, int diffX, int diffY) {
+                    mTmpFrame.left = frame.left + diffX;
+                    mTmpFrame.top = frame.top + diffY;
+                    mTmpFrame.right = frame.right + diffX;
+                    mTmpFrame.bottom = frame.bottom + diffY;
+                    return mTmpFrame;
+                }
+            }, mMaximizeBtn, mFullScreen));
+
+            mLeftResize.setOnTouchListener(new TouchListener(new ResizeWindow() {
+                @Override
+                public Rect resize(Rect frame, int diffX, int diffY) {
+                    mTmpFrame.left = frame.left + diffX;
+                    mTmpFrame.top = frame.top;
+                    mTmpFrame.right = frame.right;
+                    mTmpFrame.bottom = frame.bottom + diffY;
+                    return mTmpFrame;
+                }
+            }, mMaximizeBtn, mLeftResize, mFullScreen));
+
+            mRightResize.setOnTouchListener(new TouchListener(new ResizeWindow() {
+                @Override
+                public Rect resize(Rect frame, int diffX, int diffY) {
+                    mTmpFrame.left = frame.left;
+                    mTmpFrame.top = frame.top;
+                    mTmpFrame.right = frame.right + diffX;
+                    mTmpFrame.bottom = frame.bottom + diffY;
+                    return mTmpFrame;
+                }
+            }, mMaximizeBtn, mRightResize, mFullScreen));
+
+            mCloseBtn.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        ActivityManagerNative.getDefault().closeActivity(getStackBoxId());
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "Close button failes", e);
+                    }
+                }
+            });
+
+            mMaximizeBtn.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Rect actualWindowSize = new Rect(mDecor.getViewRootImpl().mWinFrame);
+                    try {
+                        Rect customMaximizedWindowSize = ActivityManagerNative.getDefault().getMaximizedWindowSize();
+                        if (!customMaximizedWindowSize.equals(new Rect())) {
+                            mFullScreen = customMaximizedWindowSize;
+                        } else {
+                            mFullScreen = new Rect(0, mStatusBarHeight, metrics.widthPixels, metrics.heightPixels);
+                        }
+                        if (!actualWindowSize.equals(mFullScreen)){
+                            mOldSize = actualWindowSize;
+                            ActivityManagerNative.getDefault().relayoutWindow(getStackBoxId(), mFullScreen);
+                            actualWindowSize = mFullScreen;
+                        } else {
+                            if (mOldSize == null) {
+                                mOldSize = new Rect(mDecor.getViewRootImpl().mWinFrame);
+                            }
+                            actualWindowSize = mOldSize;
+                            ActivityManagerNative.getDefault().relayoutWindow(getStackBoxId(), mOldSize);
+                        }
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "Maximize failed", e);
+                    }
+                }
+            });
         }
 
         public int getTopBarHeight() {

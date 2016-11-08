@@ -3395,6 +3395,8 @@ public class Intent implements Parcelable, Cloneable {
      */
     public static final int FLAG_GRANT_PERSISTABLE_URI_PERMISSION = 0x00000040;
 
+    public static final int FLAG_ACTIVITY_RUN_IN_WINDOW = 0x00000100;
+
     /**
      * If set, the new activity is not kept in the history stack.  As soon as
      * the user navigates away from it, the activity is finished.  This may also

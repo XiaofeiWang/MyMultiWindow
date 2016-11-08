@@ -21,6 +21,7 @@ import android.util.SuperNotCalledException;
 import com.android.internal.app.ActionBarImpl;
 import com.android.internal.policy.PolicyManager;
 
+import android.app.ActivityManager.StackBoxInfo;
 import android.content.ComponentCallbacks2;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -86,6 +87,7 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * An activity is a single, focused thing that the user can do.  Almost all
@@ -5177,6 +5179,28 @@ public class Activity extends ContextThemeWrapper
             lastNonConfigurationInstances, config);
     }
     
+    private int getStackBoxId() {
+        if (mIntent != null &&
+                (mIntent.getFlags() & Intent.FLAG_ACTIVITY_RUN_IN_WINDOW) == 0) {
+            return -1;
+        }
+        try {
+            int taskId = getTaskId();
+            List<StackBoxInfo> list = ActivityManagerNative.getDefault().getStackBoxes();
+            for (StackBoxInfo sb : list) {
+                if ((sb.stackBoxId != 0) && (sb.stack != null) && (sb.stack.taskIds != null)) {
+                    for (int i = 0; i < sb.stack.taskIds.length; i++) {
+                        if (taskId == sb.stack.taskIds[i]) {
+                            return sb.stackBoxId;
+                        }
+                    }
+                }
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
     final void attach(Context context, ActivityThread aThread,
             Instrumentation instr, IBinder token, int ident,
             Application application, Intent intent, ActivityInfo info,
@@ -5228,6 +5252,7 @@ public class Activity extends ContextThemeWrapper
     }
 
     final void performCreate(Bundle icicle) {
+        mWindow.setStackBoxId(getStackBoxId());
         onCreate(icicle);
         mVisibleFromClient = !mWindow.getWindowStyle().getBoolean(
                 com.android.internal.R.styleable.Window_windowNoDisplay, false);

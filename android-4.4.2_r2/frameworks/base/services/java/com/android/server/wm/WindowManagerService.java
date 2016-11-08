@@ -4789,10 +4789,12 @@ public class WindowManagerService extends IWindowManager.Stub
                 final TaskStack stack = task.mStack;
                 final DisplayContent displayContent = task.getDisplayContent();
                 final boolean isHomeStackTask = stack.isHomeStack();
-                if (isHomeStackTask != displayContent.homeOnTop()) {
+                /*if (isHomeStackTask != displayContent.homeOnTop()) {
                     // First move the stack itself.
                     displayContent.moveHomeStackBox(stack.mStackId);
                 }
+                stack.moveTaskToTop(task);*/
+                displayContent.moveStackBoxToTop(stack.mStackId);
                 stack.moveTaskToTop(task);
             }
         } finally {
@@ -9818,6 +9820,24 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     private WindowState findFocusedWindowLocked(DisplayContent displayContent) {
+
+    	//Use Z-order
+        if (mFocusedApp != null) {
+            Iterator<WindowState> iter = mFocusedApp.allAppWindows.iterator();
+            WindowState maxWin = null;
+            while (iter.hasNext()) {
+                WindowState win = iter.next();
+                if ((win.mAttrs.type != TYPE_APPLICATION_STARTING) &&
+                        !win.mExiting &&
+                        (maxWin == null || (maxWin.mLayer < win.mLayer))) {
+                    maxWin = win;
+                }
+            }
+            if (maxWin != null) {
+                return maxWin;
+            }
+        }
+    	
         final WindowList windows = displayContent.getWindowList();
         for (int i = windows.size() - 1; i >= 0; i--) {
             final WindowState win = windows.get(i);
@@ -10861,5 +10881,18 @@ public class WindowManagerService extends IWindowManager.Stub
     @Override
     public Object getWindowManagerLock() {
         return mWindowMap;
+    }
+
+    public boolean relayoutWindow(int stackID, Rect pos) {
+        synchronized (mWindowMap) {
+            final int numDisplays = mDisplayContents.size();
+            for (int displayNdx = 0; displayNdx < numDisplays; ++displayNdx) {
+                if (mDisplayContents.valueAt(displayNdx).relayoutStackBox(stackID, pos)) {
+                    performLayoutAndPlaceSurfacesLocked();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

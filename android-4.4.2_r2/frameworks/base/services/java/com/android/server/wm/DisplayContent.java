@@ -347,11 +347,11 @@ class DisplayContent {
      * @param toTop Move home to the top of mStackBoxes if true, to the bottom if false.
      * @return true if a change was made, false otherwise.
      */
-    boolean moveHomeStackBox(int stackId) {
-        if (DEBUG_STACK) Slog.d(TAG, "moveHomeStackBox: stackId=" + stackId + " Callers=" +
+    boolean moveHomeStackBox(boolean toTop) {
+        if (DEBUG_STACK) Slog.d(TAG, "moveHomeStackBox: toTop=" + toTop + " Callers=" +
                 Debug.getCallers(4));
-        EventLog.writeEvent(EventLogTags.WM_HOME_STACK_MOVED, stackId);
-        /*switch (mStackBoxes.size()) {
+        EventLog.writeEvent(EventLogTags.WM_HOME_STACK_MOVED, toTop ? 1 : 0);
+        switch (mStackBoxes.size()) {
             case 0: throw new RuntimeException("moveHomeStackBox: No home StackBox!");
             case 1: return false; // Only the home StackBox exists.
             case 2:
@@ -361,8 +361,13 @@ class DisplayContent {
                 }
                 return false;
             default: throw new RuntimeException("moveHomeStackBox: Too many toplevel StackBoxes!");
-        }*/
+        }
+    }
 
+    boolean moveStackBoxToTop(int stackId) {
+        if (DEBUG_STACK) Slog.d(TAG, "moveHomeStackBox: stackId=" + stackId + " Callers=" +
+                Debug.getCallers(4));
+        EventLog.writeEvent(EventLogTags.WM_HOME_STACK_MOVED, stackId);
         /*
          * Firstly find the stackbox
          */

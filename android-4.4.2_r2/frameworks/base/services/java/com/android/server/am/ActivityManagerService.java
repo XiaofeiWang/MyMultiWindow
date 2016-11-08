@@ -125,6 +125,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.net.Proxy;
 import android.net.ProxyProperties;
 import android.net.Uri;
@@ -338,6 +339,7 @@ public final class ActivityManagerService extends ActivityManagerNative
     // devices.
     private boolean mShowDialogs = true;
 
+    private Rect mMaximizedWindowSize = new Rect();
     /**
      * Description of a request to start a new activity, which has been held
      * due to app switches being disabled.
@@ -16614,4 +16616,45 @@ public final class ActivityManagerService extends ActivityManagerNative
         info.applicationInfo = getAppInfoForUser(info.applicationInfo, userId);
         return info;
     }
+
+    @Override
+    public boolean relayoutWindow(int stackID, Rect r) {
+//        enforceCallingPermission(android.Manifest.permission.MANAGE_ACTIVITY_STACKS,
+//                "resizeStackBox()");
+        long ident = Binder.clearCallingIdentity();
+        try {
+            Slog.v(TAG, "RelayoutWindow: " + stackID + " pos:" + r);
+            mWindowManager.relayoutWindow(stackID, r);
+        } finally {
+            Binder.restoreCallingIdentity(ident);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean closeActivity(int stackID) {
+        boolean succeed = false;
+        long ident = Binder.clearCallingIdentity();
+        for (StackBoxInfo sb : getStackBoxes()) {
+            if (sb.stackId == stackID) {
+                for (int next = sb.stack.taskIds.length - 1; next >= 0; --next) {
+                    succeed = removeTask(sb.stack.taskIds[next], 0);
+                }
+            }
+        }
+        Binder.restoreCallingIdentity(ident);
+        return succeed;
+    }
+
+    @Override
+    public void setMaximizedWindowSize(Rect screen) {
+        mMaximizedWindowSize = screen;
+    }
+
+    @Override
+    public Rect getMaximizedWindowSize() {
+        return mMaximizedWindowSize;
+    }
+
+
 }

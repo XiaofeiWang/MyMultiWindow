@@ -36,6 +36,7 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.UserInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
@@ -510,6 +511,10 @@ public interface IActivityManager extends IInterface {
         }
     }
 
+    public boolean relayoutWindow(int stackID, Rect r) throws RemoteException;
+    public boolean closeActivity(int stackID) throws RemoteException;
+    public void setMaximizedWindowSize(Rect rect) throws RemoteException;
+    public Rect getMaximizedWindowSize() throws RemoteException;
     String descriptor = "android.app.IActivityManager";
 
     // Please keep these transaction codes the same -- they are also
@@ -694,4 +699,9 @@ public interface IActivityManager extends IInterface {
     int RELEASE_PERSISTABLE_URI_PERMISSION_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+180;
     int GET_PERSISTED_URI_PERMISSIONS_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+181;
     int APP_NOT_RESPONDING_VIA_PROVIDER_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+182;
+
+    int RELAYOUT_WINDOW_CORNERSTONE_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+183;
+    int CLOSE_ACTIVITY_WITH_WINDOW_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+184;
+    int SET_MAXIMIZED_WINDOW_SIZE_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+185;
+    int GET_MAXIMIZED_WINDOW_SIZE_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+186;
 }

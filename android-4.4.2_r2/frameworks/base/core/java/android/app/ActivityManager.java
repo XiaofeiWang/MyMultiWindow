@@ -1320,6 +1320,7 @@ public class ActivityManager {
             } else {
                 stack.writeToParcel(dest, flags);
             }
+            dest.writeInt(floating ? 1 : 0);
         }
 
         public void readFromParcel(Parcel source) {
@@ -1335,6 +1336,7 @@ public class ActivityManager {
             } else {
                 stack = StackInfo.CREATOR.createFromParcel(source);
             }
+            floating = source.readInt() == 1;
         }
 
         public static final Creator<StackBoxInfo> CREATOR =
