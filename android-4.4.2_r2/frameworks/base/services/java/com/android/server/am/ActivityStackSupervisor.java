@@ -963,6 +963,8 @@ public final class ActivityStackSupervisor {
                     }
                 }
             }
+
+            r.intent.addFlags(r.task.intent.getFlags() & Intent.FLAG_ACTIVITY_RUN_IN_WINDOW);
             app.forceProcessStateUpTo(ActivityManager.PROCESS_STATE_TOP);
             app.thread.scheduleLaunchActivity(new Intent(r.intent), r.appToken,
                     System.identityHashCode(r), r.info,
@@ -1278,6 +1280,11 @@ public final class ActivityStackSupervisor {
                 if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
                         "adjustStackFocus: Have a focused stack=" + mFocusedStack);
                 return mFocusedStack;
+            }
+
+            Slog.d(TAG, "adjustStackFocus: r.intent=" + r.intent);
+            if (r.intent != null) {
+                r.intent.addFlags(Intent.FLAG_ACTIVITY_RUN_IN_WINDOW);
             }
 
             for (int stackNdx = mStacks.size() - 1; stackNdx > 0; --stackNdx) {

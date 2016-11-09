@@ -123,7 +123,7 @@ public class TaskStack {
         task.mStack = this;
         mDisplayContent.addTask(task, toTop);
         //return mDisplayContent.moveHomeStackBox(mStackId == HOME_STACK_ID);
-        return mDisplayContent.moveHomeStackBox(mStackId);
+        return mDisplayContent.moveStackBoxToTop(mStackId);
     }
 
     boolean moveTaskToTop(Task task) {

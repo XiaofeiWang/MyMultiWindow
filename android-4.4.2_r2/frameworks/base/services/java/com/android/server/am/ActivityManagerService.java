@@ -7208,8 +7208,8 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     @Override
     public List<StackBoxInfo> getStackBoxes() {
-        enforceCallingPermission(android.Manifest.permission.MANAGE_ACTIVITY_STACKS,
-                "getStackBoxes()");
+        /*enforceCallingPermission(android.Manifest.permission.MANAGE_ACTIVITY_STACKS,
+                "getStackBoxes()");*/
         long ident = Binder.clearCallingIdentity();
         try {
             List<StackBoxInfo> stackBoxInfos = mWindowManager.getStackBoxInfos();

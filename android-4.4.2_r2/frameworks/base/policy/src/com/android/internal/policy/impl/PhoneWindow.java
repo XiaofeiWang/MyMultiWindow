@@ -3103,7 +3103,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private void installDecor() {
         if (mDecor == null) {
             mDecor = generateDecor();
-            installMultiWindowDecor(mDecor);
+            if (isMultiWindowPanel()) {
+                installMultiWindowDecor(mDecor);
+            }
             mDecor.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
             mDecor.setIsRootNamespace(true);
             if (!mInvalidatePanelMenuPosted && mInvalidatePanelMenuFeatures != 0) {
