@@ -83,6 +83,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Rect;
+
 public final class ActivityStackSupervisor {
     static final boolean DEBUG = ActivityManagerService.DEBUG || false;
     static final boolean DEBUG_ADD_REMOVE = DEBUG || false;
@@ -1268,7 +1270,7 @@ public final class ActivityStackSupervisor {
                 if (mFocusedStack != taskStack) {
                     if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
                             "adjustStackFocus: Setting focused stack to r=" + r + " task=" + task);
-                    mFocusedStack = taskStack.isHomeStack() ? null : taskStack;
+                    setFocusedStack(taskStack);
                 } else {
                     if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
                         "adjustStackFocus: Focused stack already=" + mFocusedStack);
@@ -1276,64 +1278,107 @@ public final class ActivityStackSupervisor {
                 return taskStack;
             }
 
-            if (mFocusedStack != null) {
-                if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
-                        "adjustStackFocus: Have a focused stack=" + mFocusedStack);
-                return mFocusedStack;
-            }
+//            if (mFocusedStack != null) {
+//                if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
+//                        "adjustStackFocus: Have a focused stack=" + mFocusedStack);
+//                return mFocusedStack;
+//            }
+
+            // Time to create the first app stack for this user.
+            int parentStackId = HOME_STACK_ID;
+            int intentFlags = 0;
+
+            /*boolean multiwindowEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.TIETO_MULTIWINDOW_ENABLED, 0) != 0;*/
 
             Slog.d(TAG, "adjustStackFocus: r.intent=" + r.intent);
             if (r.intent != null) {
                 r.intent.addFlags(Intent.FLAG_ACTIVITY_RUN_IN_WINDOW);
             }
 
-            for (int stackNdx = mStacks.size() - 1; stackNdx > 0; --stackNdx) {
-                ActivityStack stack = mStacks.get(stackNdx);
-                if (!stack.isHomeStack()) {
-                    if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
-                            "adjustStackFocus: Setting focused stack=" + stack);
-                    mFocusedStack = stack;
-                    return mFocusedStack;
+            intentFlags = (r.intent != null) ? r.intent.getFlags() : 0;
+            boolean isMultiwindow = (intentFlags & Intent.FLAG_ACTIVITY_RUN_IN_WINDOW) != 0;
+
+
+            if (!isMultiwindow) {
+                for (int stackNdx = mStacks.size() - 1; stackNdx > 0; --stackNdx) {
+                    ActivityStack stack = mStacks.get(stackNdx);
+                    if (!stack.isHomeStack() && !stack.isMultiwindowStack()) {
+                        if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
+                                "adjustStackFocus: Setting focused stack=" + stack);
+                        /**
+                         * Date: Jul 8, 2014
+                         * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+                         *
+                         * Use function for setting focused stack
+                         */
+                        setFocusedStack(stack);
+                        return mFocusedStack;
+                    }
                 }
             }
 
             // Time to create the first app stack for this user.
             int stackId =
-                    mService.createStack(-1, HOME_STACK_ID, StackBox.TASK_STACK_GOES_OVER, 1.0f);
+                    mService.createStack(-1, parentStackId, isMultiwindow ?
+                           StackBox.TASK_FLOATING : StackBox.TASK_STACK_GOES_OVER, 1.0f);
+            /**
+             * Date: Mar 3, 2014
+             * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+             *
+             * TietoTODO: how to set position of starting window?
+             * Activities which run on external are run fullscreen. At least
+             * for now
+             */
+            if ((parentStackId == HOME_STACK_ID) && isMultiwindow) {
+                mService.relayoutWindow(stackId, new Rect(200, 400, 700, 1000));
+            }
             if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG, "adjustStackFocus: New stack r=" + r +
                     " stackId=" + stackId);
-            mFocusedStack = getStack(stackId);
+            /**
+             * Date: Jul 8, 2014
+             * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+             *
+             * Use function for setting focused stack
+             */
+            setFocusedStack(getStack(stackId));
+            /**
+             * Date: Apr 23, 2014
+             * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+             *
+             * Set stack as multiwindow stack. Stack is created few lines above:
+             * mService.createStack()
+             */
+            mFocusedStack.setMultiwindowStack(isMultiwindow);
             return mFocusedStack;
         }
         return mHomeStack;
     }
 
-    void setFocusedStack(ActivityRecord r) {
+    public void setFocusedStack(ActivityRecord r) {
         if (r == null) {
             return;
         }
+        ActivityStack focusedStack;
         if (!r.isApplicationActivity() || (r.task != null && !r.task.isApplicationTask())) {
-            if (mStackState != STACK_STATE_HOME_IN_FRONT) {
-                if (DEBUG_STACK || DEBUG_FOCUS) Slog.d(TAG, "setFocusedStack: mStackState old=" +
-                        stackStateToString(mStackState) + " new=" +
-                        stackStateToString(STACK_STATE_HOME_TO_FRONT) +
-                        " Callers=" + Debug.getCallers(3));
-                mStackState = STACK_STATE_HOME_TO_FRONT;
-            }
+            focusedStack = mHomeStack;
         } else {
             if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG,
                     "setFocusedStack: Setting focused stack to r=" + r + " task=" + r.task +
                     " Callers=" + Debug.getCallers(3));
             final ActivityStack taskStack = r.task.stack;
-            mFocusedStack = taskStack.isHomeStack() ? null : taskStack;
-            if (mStackState != STACK_STATE_HOME_IN_BACK) {
-                if (DEBUG_STACK) Slog.d(TAG, "setFocusedStack: mStackState old=" +
-                        stackStateToString(mStackState) + " new=" +
-                        stackStateToString(STACK_STATE_HOME_TO_BACK) +
-                        " Callers=" + Debug.getCallers(3));
-                mStackState = STACK_STATE_HOME_TO_BACK;
-            }
+            focusedStack = taskStack;
         }
+        setFocusedStack(focusedStack);
+    }
+
+    public void setFocusedStack(ActivityStack stack) {
+        if (DEBUG_STACK) Slog.d(TAG, "setFocusedStack: old=" +
+                mFocusedStack + " new=" + stack +
+                " Callers=" + Debug.getCallers(10));
+        mFocusedStack = stack;
+        mStacks.remove(mFocusedStack);
+        mStacks.add(mFocusedStack);
     }
 
     final int startActivityUncheckedLocked(ActivityRecord r,
@@ -2091,6 +2136,7 @@ public final class ActivityStackSupervisor {
             return;
         }
         removeTask(task);
+        setFocusedStack(stack);
         stack.addTask(task, toTop);
         mWindowManager.addTask(taskId, stackId, toTop);
         resumeTopActivitiesLocked();
@@ -2302,6 +2348,7 @@ public final class ActivityStackSupervisor {
         }
         final boolean homeInFront = stack.isHomeStack();
         moveHomeStack(homeInFront);
+        setFocusedStack(stack);
         mWindowManager.moveTaskToTop(stack.topTask().taskId);
         return homeInFront;
     }

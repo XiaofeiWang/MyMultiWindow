@@ -233,6 +233,8 @@ final class ActivityStack {
     /** Run all ActivityStacks through this */
     final ActivityStackSupervisor mStackSupervisor;
 
+    private boolean mIsMultiwindowStack;
+
     static final int PAUSE_TIMEOUT_MSG = ActivityManagerService.FIRST_ACTIVITY_STACK_MSG + 1;
     static final int DESTROY_TIMEOUT_MSG = ActivityManagerService.FIRST_ACTIVITY_STACK_MSG + 2;
     static final int LAUNCH_TICK_MSG = ActivityManagerService.FIRST_ACTIVITY_STACK_MSG + 3;
@@ -3631,6 +3633,14 @@ final class ActivityStack {
 
     public int getStackId() {
         return mStackId;
+    }
+
+    public boolean isMultiwindowStack() {
+        return mIsMultiwindowStack;
+    }
+
+    public void setMultiwindowStack(boolean isMultiwindow) {
+        mIsMultiwindowStack = isMultiwindow;
     }
 
     @Override

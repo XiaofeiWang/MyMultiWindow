@@ -7506,6 +7506,7 @@ public class WindowManagerService extends IWindowManager.Stub
                     synchronized (mWindowMap) {
                         stackId = ((DisplayContent)msg.obj).stackIdFromPoint(msg.arg1, msg.arg2);
                     }
+                    android.util.Log.i(TAG, "TAP_OUTSIDE_STACK stackId: " + stackId);
                     if (stackId >= 0) {
                         try {
                             mActivityManager.setFocusedStack(stackId);

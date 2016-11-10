@@ -257,6 +257,8 @@ public interface WindowManager extends ViewManager {
          * End of types of application windows.
          */
         public static final int LAST_APPLICATION_WINDOW = 99;
+
+        public static final int TYPE_MULTIWINDOW_APPLICATION = 100;
     
         /**
          * Start of types of sub-windows.  The {@link #token} of these windows

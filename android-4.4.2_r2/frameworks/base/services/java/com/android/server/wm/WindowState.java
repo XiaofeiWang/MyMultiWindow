@@ -358,9 +358,7 @@ final class WindowState implements WindowManagerPolicy.WindowState {
                 mAttrs.type <= LAST_SUB_WINDOW)) {
             // The multiplier here is to reserve space for multiple
             // windows in the same type layer.
-            mBaseLayer = mPolicy.windowTypeToLayerLw(
-                    attachedWindow.mAttrs.type) * WindowManagerService.TYPE_LAYER_MULTIPLIER
-                    + WindowManagerService.TYPE_LAYER_OFFSET;
+            mBaseLayer = attachedWindow.mBaseLayer;
             mSubLayer = mPolicy.subWindowTypeToLayerLw(a.type);
             mAttachedWindow = attachedWindow;
             if (WindowManagerService.DEBUG_ADD_REMOVE) Slog.v(TAG, "Adding " + this + " to " + mAttachedWindow);
@@ -397,9 +395,16 @@ final class WindowState implements WindowManagerPolicy.WindowState {
             mIsWallpaper = attachedWindow.mAttrs.type == TYPE_WALLPAPER;
             mIsFloatingLayer = mIsImWindow || mIsWallpaper;
         } else {
+            int type = a.type;
+            if (mToken != null && mToken.appWindowToken != null) {
+                Task task = mService.mTaskIdToTask.get(mToken.appWindowToken.groupId);
+                if (task.mStack.mStackBox.isFloating()) {
+                    type = WindowManager.LayoutParams.TYPE_MULTIWINDOW_APPLICATION;
+                }
+            }
             // The multiplier here is to reserve space for multiple
             // windows in the same type layer.
-            mBaseLayer = mPolicy.windowTypeToLayerLw(a.type)
+            mBaseLayer = mPolicy.windowTypeToLayerLw(type)
                     * WindowManagerService.TYPE_LAYER_MULTIPLIER
                     + WindowManagerService.TYPE_LAYER_OFFSET;
             mSubLayer = 0;
@@ -462,16 +467,26 @@ final class WindowState implements WindowManagerPolicy.WindowState {
     public void computeFrameLw(Rect pf, Rect df, Rect of, Rect cf, Rect vf, Rect dcf) {
         mHaveFrame = true;
 
+        Slog.i(TAG, "\n\ncomputeFrameLw Window " + this
+        		+ " pf: " + pf.toShortString()
+        		+ " df: " + df.toShortString()
+        		+ " of: " + of.toShortString()
+        		+ " cf: " + cf.toShortString()
+        		+ " vf: " + vf.toShortString()
+        		+ " dcf: " + dcf.toShortString());
+        
         TaskStack stack = mAppToken != null ? getStack() : null;
-        if (stack != null && stack.hasSibling()) {
+        if (stack != null && (stack.hasSibling() || stack.mStackBox.isFloating())) {
+        	Slog.i(TAG, "computeFrameLw stack bounds: " + getStackBounds(stack).toShortString());
             mContainingFrame.set(getStackBounds(stack));
-            if (mUnderStatusBar) {
+            if (mUnderStatusBar && !stack.mStackBox.isFloating()) {
                 mContainingFrame.top = pf.top;
             }
         } else {
             mContainingFrame.set(pf);
         }
 
+        Slog.i(TAG, "computeFrameLw after mContainingFrame: " + mContainingFrame.toShortString());
         mDisplayFrame.set(df);
 
         final int pw = mContainingFrame.width();
@@ -511,8 +526,8 @@ final class WindowState implements WindowManagerPolicy.WindowState {
         }
 
         if (!mParentFrame.equals(pf)) {
-            //Slog.i(TAG, "Window " + this + " content frame from " + mParentFrame
-            //        + " to " + pf);
+            Slog.i(TAG, "Window " + this + " content frame from " + mParentFrame
+                    + " to " + pf);
             mParentFrame.set(pf);
             mContentChanged = true;
         }
@@ -530,17 +545,21 @@ final class WindowState implements WindowManagerPolicy.WindowState {
         final int fw = mFrame.width();
         final int fh = mFrame.height();
 
-        //System.out.println("In: w=" + w + " h=" + h + " container=" +
-        //                   container + " x=" + mAttrs.x + " y=" + mAttrs.y);
-
         float x, y;
         if (mEnforceSizeCompat) {
             x = mAttrs.x * mGlobalScale;
             y = mAttrs.y * mGlobalScale;
+        } else if (stack != null && stack.mStackBox.isFloating()) {
+            x = mContainingFrame.left;
+            y = mContainingFrame.top;
         } else {
             x = mAttrs.x;
             y = mAttrs.y;
         }
+
+        Slog.v(TAG,"computeFrameLw　In: w=" + w + " h=" + h + " x=" + mAttrs.x + " y=" + mAttrs.y
+        		+ ", mAttrs.horizontalMargin: " + mAttrs.horizontalMargin + ", mAttrs.verticalMargin: " + mAttrs.verticalMargin
+        		+ ", pw: " + pw + ", ph: " + ph);
 
         Gravity.apply(mAttrs.gravity, w, h, mContainingFrame,
                 (int) (x + mAttrs.horizontalMargin * pw),
@@ -548,36 +567,37 @@ final class WindowState implements WindowManagerPolicy.WindowState {
 
         //System.out.println("Out: " + mFrame);
 
-        // Now make sure the window fits in the overall display.
-        Gravity.applyDisplay(mAttrs.gravity, df, mFrame);
-
-        // Make sure the content and visible frames are inside of the
-        // final window frame.
-        mContentFrame.set(Math.max(mContentFrame.left, mFrame.left),
-                Math.max(mContentFrame.top, mFrame.top),
-                Math.min(mContentFrame.right, mFrame.right),
-                Math.min(mContentFrame.bottom, mFrame.bottom));
-
-        mVisibleFrame.set(Math.max(mVisibleFrame.left, mFrame.left),
-                Math.max(mVisibleFrame.top, mFrame.top),
-                Math.min(mVisibleFrame.right, mFrame.right),
-                Math.min(mVisibleFrame.bottom, mFrame.bottom));
-
-        mOverscanInsets.set(Math.max(mOverscanFrame.left - mFrame.left, 0),
-                Math.max(mOverscanFrame.top - mFrame.top, 0),
-                Math.max(mFrame.right - mOverscanFrame.right, 0),
-                Math.max(mFrame.bottom - mOverscanFrame.bottom, 0));
-
-        mContentInsets.set(mContentFrame.left - mFrame.left,
-                mContentFrame.top - mFrame.top,
-                mFrame.right - mContentFrame.right,
-                mFrame.bottom - mContentFrame.bottom);
-
-        mVisibleInsets.set(mVisibleFrame.left - mFrame.left,
-                mVisibleFrame.top - mFrame.top,
-                mFrame.right - mVisibleFrame.right,
-                mFrame.bottom - mVisibleFrame.bottom);
-
+        //if ((stack == null) || (!stack.mStackBox.isFloating())) {
+	        // Now make sure the window fits in the overall display.
+	        Gravity.applyDisplay(mAttrs.gravity, df, mFrame);
+	
+	        // Make sure the content and visible frames are inside of the
+	        // final window frame.
+	        mContentFrame.set(Math.max(mContentFrame.left, mFrame.left),
+	                Math.max(mContentFrame.top, mFrame.top),
+	                Math.min(mContentFrame.right, mFrame.right),
+	                Math.min(mContentFrame.bottom, mFrame.bottom));
+	
+	        mVisibleFrame.set(Math.max(mVisibleFrame.left, mFrame.left),
+	                Math.max(mVisibleFrame.top, mFrame.top),
+	                Math.min(mVisibleFrame.right, mFrame.right),
+	                Math.min(mVisibleFrame.bottom, mFrame.bottom));
+	
+	        mOverscanInsets.set(Math.max(mOverscanFrame.left - mFrame.left, 0),
+	                Math.max(mOverscanFrame.top - mFrame.top, 0),
+	                Math.max(mFrame.right - mOverscanFrame.right, 0),
+	                Math.max(mFrame.bottom - mOverscanFrame.bottom, 0));
+	
+	        mContentInsets.set(mContentFrame.left - mFrame.left,
+	                mContentFrame.top - mFrame.top,
+	                mFrame.right - mContentFrame.right,
+	                mFrame.bottom - mContentFrame.bottom);
+	
+	        mVisibleInsets.set(mVisibleFrame.left - mFrame.left,
+	                mVisibleFrame.top - mFrame.top,
+	                mFrame.right - mVisibleFrame.right,
+	                mFrame.bottom - mVisibleFrame.bottom);
+        //}
         mCompatFrame.set(mFrame);
         if (mEnforceSizeCompat) {
             // If there is a size compatibility scale being applied to the
@@ -598,13 +618,19 @@ final class WindowState implements WindowManagerPolicy.WindowState {
                     displayInfo.logicalWidth, displayInfo.logicalHeight, false);
         }
 
-        if (DEBUG_LAYOUT || WindowManagerService.localLOGV) Slog.v(TAG,
+        Slog.v(TAG,
                 "Resolving (mRequestedWidth="
                 + mRequestedWidth + ", mRequestedheight="
                 + mRequestedHeight + ") to" + " (pw=" + pw + ", ph=" + ph
-                + "): frame=" + mFrame.toShortString()
+                + "): mFrame=" + mFrame.toShortString()
                 + " ci=" + mContentInsets.toShortString()
-                + " vi=" + mVisibleInsets.toShortString());
+                + " vi=" + mVisibleInsets.toShortString()
+                + " mContainingFrame: " + mContainingFrame.toShortString()
+                + " mContentFrame: " + mContentFrame.toShortString()
+                + " mVisibleFrame: " + mVisibleFrame.toShortString()
+                + " mOverscanInsets: " + mOverscanInsets.toShortString()
+                + " mVisibleInsets: " + mVisibleInsets.toShortString()
+                );
     }
 
     @Override
