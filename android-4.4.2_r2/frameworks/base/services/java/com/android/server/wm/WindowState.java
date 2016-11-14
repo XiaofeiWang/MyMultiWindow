@@ -549,9 +549,6 @@ final class WindowState implements WindowManagerPolicy.WindowState {
         if (mEnforceSizeCompat) {
             x = mAttrs.x * mGlobalScale;
             y = mAttrs.y * mGlobalScale;
-        } else if (stack != null && stack.mStackBox.isFloating()) {
-            x = mContainingFrame.left;
-            y = mContainingFrame.top;
         } else {
             x = mAttrs.x;
             y = mAttrs.y;

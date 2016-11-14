@@ -185,10 +185,8 @@ public class Gravity
      */
     public static void apply(int gravity, int w, int h, Rect container,
             int xAdj, int yAdj, Rect outRect) {
-    	android.util.Slog.i("WindowState", "apply gravity: " + gravity + ", value: " + (gravity&((AXIS_PULL_BEFORE|AXIS_PULL_AFTER)<<AXIS_X_SHIFT)));
         switch (gravity&((AXIS_PULL_BEFORE|AXIS_PULL_AFTER)<<AXIS_X_SHIFT)) {
             case 0:
-            	android.util.Slog.i("WindowState", "apply gravity 1.0");
                 outRect.left = container.left
                         + ((container.right - container.left - w)/2) + xAdj;
                 outRect.right = outRect.left + w;
@@ -203,7 +201,6 @@ public class Gravity
                 }
                 break;
             case AXIS_PULL_BEFORE<<AXIS_X_SHIFT:
-            	android.util.Slog.i("WindowState", "apply AXIS_PULL_BEFORE<<AXIS_X_SHIFT");
                 outRect.left = container.left + xAdj;
                 outRect.right = outRect.left + w;
                 if ((gravity&(AXIS_CLIP<<AXIS_X_SHIFT))
@@ -214,7 +211,6 @@ public class Gravity
                 }
                 break;
             case AXIS_PULL_AFTER<<AXIS_X_SHIFT:
-            	android.util.Slog.i("WindowState", "apply AXIS_PULL_AFTER<<AXIS_X_SHIFT");
                 outRect.right = container.right - xAdj;
                 outRect.left = outRect.right - w;
                 if ((gravity&(AXIS_CLIP<<AXIS_X_SHIFT))
@@ -225,17 +221,13 @@ public class Gravity
                 }
                 break;
             default:
-            	android.util.Slog.i("WindowState", "apply 1.0 defalut container: " + container.toShortString()
-            			+ ", container.left: " + container.left + ", xAdj: " + xAdj);
                 outRect.left = container.left + xAdj;
                 outRect.right = container.right + xAdj;
-                android.util.Slog.i("WindowState", "apply 1.0 defalut outRect: " + outRect.toShortString());
                 break;
         }
         
         switch (gravity&((AXIS_PULL_BEFORE|AXIS_PULL_AFTER)<<AXIS_Y_SHIFT)) {
             case 0:
-            	android.util.Slog.i("WindowState", "apply gravity 2.0");
                 outRect.top = container.top
                         + ((container.bottom - container.top - h)/2) + yAdj;
                 outRect.bottom = outRect.top + h;
@@ -250,7 +242,6 @@ public class Gravity
                 }
                 break;
             case AXIS_PULL_BEFORE<<AXIS_Y_SHIFT:
-            	android.util.Slog.i("WindowState", "AXIS_PULL_BEFORE<<AXIS_Y_SHIFT");
                 outRect.top = container.top + yAdj;
                 outRect.bottom = outRect.top + h;
                 if ((gravity&(AXIS_CLIP<<AXIS_Y_SHIFT))
@@ -261,7 +252,6 @@ public class Gravity
                 }
                 break;
             case AXIS_PULL_AFTER<<AXIS_Y_SHIFT:
-            	android.util.Slog.i("WindowState", "AXIS_PULL_AFTER<<AXIS_Y_SHIFT");
                 outRect.bottom = container.bottom - yAdj;
                 outRect.top = outRect.bottom - h;
                 if ((gravity&(AXIS_CLIP<<AXIS_Y_SHIFT))
@@ -272,11 +262,8 @@ public class Gravity
                 }
                 break;
             default:
-            	android.util.Slog.i("WindowState", "apply 1.0 defalut container: " + container.toShortString()
-            			+ ",container.top: " + container.top + ", yAdj: " + yAdj);
                 outRect.top = container.top + yAdj;
                 outRect.bottom = container.bottom + yAdj;
-                android.util.Slog.i("WindowState", "apply 2.0 defalut outRect: " + outRect.toShortString());
                 break;
         }
     }

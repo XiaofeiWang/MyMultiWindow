@@ -1330,9 +1330,9 @@ public final class ActivityStackSupervisor {
              * Activities which run on external are run fullscreen. At least
              * for now
              */
-            if ((parentStackId == HOME_STACK_ID) && isMultiwindow) {
+            /*if ((parentStackId == HOME_STACK_ID) && isMultiwindow) {
                 mService.relayoutWindow(stackId, new Rect(200, 400, 700, 1000));
-            }
+            }*/
             if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG, "adjustStackFocus: New stack r=" + r +
                     " stackId=" + stackId);
             /**
