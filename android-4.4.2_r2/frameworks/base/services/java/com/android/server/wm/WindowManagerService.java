@@ -158,14 +158,14 @@ public class WindowManagerService extends IWindowManager.Stub
         implements Watchdog.Monitor, WindowManagerPolicy.WindowManagerFuncs,
                 DisplayManagerService.WindowManagerFuncs, DisplayManager.DisplayListener {
     static final String TAG = "WindowManager";
-    static final boolean DEBUG = false;
-    static final boolean DEBUG_ADD_REMOVE = false;
-    static final boolean DEBUG_FOCUS = false;
+    static final boolean DEBUG = true;
+    static final boolean DEBUG_ADD_REMOVE = true;
+    static final boolean DEBUG_FOCUS = true;
     static final boolean DEBUG_FOCUS_LIGHT = DEBUG_FOCUS || false;
-    static final boolean DEBUG_ANIM = false;
-    static final boolean DEBUG_LAYOUT = false;
+    static final boolean DEBUG_ANIM = true;
+    static final boolean DEBUG_LAYOUT = true;
     static final boolean DEBUG_RESIZE = false;
-    static final boolean DEBUG_LAYERS = false;
+    static final boolean DEBUG_LAYERS = true;
     static final boolean DEBUG_INPUT = false;
     static final boolean DEBUG_INPUT_METHOD = false;
     static final boolean DEBUG_VISIBILITY = false;
@@ -184,13 +184,13 @@ public class WindowManagerService extends IWindowManager.Stub
     static final boolean DEBUG_SCREENSHOT = false;
     static final boolean DEBUG_BOOT = false;
     static final boolean DEBUG_LAYOUT_REPEATS = true;
-    static final boolean DEBUG_SURFACE_TRACE = false;
-    static final boolean DEBUG_WINDOW_TRACE = false;
-    static final boolean DEBUG_TASK_MOVEMENT = false;
-    static final boolean DEBUG_STACK = false;
-    static final boolean SHOW_SURFACE_ALLOC = false;
-    static final boolean SHOW_TRANSACTIONS = false;
-    static final boolean SHOW_LIGHT_TRANSACTIONS = false || SHOW_TRANSACTIONS;
+    static final boolean DEBUG_SURFACE_TRACE = true;
+    static final boolean DEBUG_WINDOW_TRACE = true;
+    static final boolean DEBUG_TASK_MOVEMENT = true;
+    static final boolean DEBUG_STACK = true;
+    static final boolean SHOW_SURFACE_ALLOC = true;
+    static final boolean SHOW_TRANSACTIONS = true;
+    static final boolean SHOW_LIGHT_TRANSACTIONS = true || SHOW_TRANSACTIONS;
     static final boolean HIDE_STACK_CRAWLS = true;
     static final int LAYOUT_REPEAT_THRESHOLD = 4;
 

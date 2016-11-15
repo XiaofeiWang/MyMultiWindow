@@ -1002,7 +1002,7 @@ final class ActivityStack {
                 if (r.isHomeActivity()) {
                     return true;
                 }
-                if (!r.finishing && r.fullscreen) {
+                if (!r.finishing && r.isFullscreen()) {
                     // Passed activity is over a fullscreen activity.
                     return false;
                 }
@@ -1056,8 +1056,19 @@ final class ActivityStack {
         // make sure any activities under it are now visible.
         boolean aboveTop = true;
         boolean showHomeBehindStack = false;
-        boolean behindFullscreen = !mStackSupervisor.isFrontStack(this) &&
+        boolean behindFullscreen = !isMultiwindowStack() && !mStackSupervisor.isFrontStack(this) &&
                 !(forceHomeShown && isHomeStack());
+        if (behindFullscreen) {
+            for (ActivityStack as : mStackSupervisor.getStacks()) {
+                if (as == this) {
+                    break;
+                } else if (as.isHomeStack()) {
+                    behindFullscreen = false;
+                    break;
+                }
+            }
+        }
+
         for (int taskNdx = mTaskHistory.size() - 1; taskNdx >= 0; --taskNdx) {
             final TaskRecord task = mTaskHistory.get(taskNdx);
             final ArrayList<ActivityRecord> activities = task.mActivities;
@@ -1139,7 +1150,7 @@ final class ActivityStack {
                     // Aggregate current change flags.
                     configChanges |= r.configChangeFlags;
 
-                    if (r.fullscreen) {
+                    if (r.isFullscreen()) {
                         // At this point, nothing else needs to be shown
                         if (DEBUG_VISBILITY) Slog.v(TAG, "Fullscreen: at " + r);
                         behindFullscreen = true;
@@ -1717,7 +1728,7 @@ final class ActivityStack {
                         task.addActivityToTop(r);
                         r.putInHistory();
                         mWindowManager.addAppToken(task.mActivities.indexOf(r), r.appToken,
-                                r.task.taskId, mStackId, r.info.screenOrientation, r.fullscreen,
+                                r.task.taskId, mStackId, r.info.screenOrientation, r.isFullscreen(),
                                 (r.info.flags & ActivityInfo.FLAG_SHOW_ON_LOCK_SCREEN) != 0,
                                 r.userId, r.info.configChanges);
                         if (VALIDATE_TOKENS) {
@@ -1779,7 +1790,7 @@ final class ActivityStack {
             }
             r.updateOptionsLocked(options);
             mWindowManager.addAppToken(task.mActivities.indexOf(r),
-                    r.appToken, r.task.taskId, mStackId, r.info.screenOrientation, r.fullscreen,
+                    r.appToken, r.task.taskId, mStackId, r.info.screenOrientation, r.isFullscreen(),
                     (r.info.flags & ActivityInfo.FLAG_SHOW_ON_LOCK_SCREEN) != 0, r.userId,
                     r.info.configChanges);
             boolean doShow = true;
@@ -1823,7 +1834,7 @@ final class ActivityStack {
             // If this is the first activity, don't do any fancy animations,
             // because there is nothing for it to animate on top of.
             mWindowManager.addAppToken(task.mActivities.indexOf(r), r.appToken,
-                    r.task.taskId, mStackId, r.info.screenOrientation, r.fullscreen,
+                    r.task.taskId, mStackId, r.info.screenOrientation, r.isFullscreen(),
                     (r.info.flags & ActivityInfo.FLAG_SHOW_ON_LOCK_SCREEN) != 0, r.userId,
                     r.info.configChanges);
             ActivityOptions.abort(options);
@@ -2740,7 +2751,7 @@ final class ActivityStack {
                 if (r.finishing) {
                     continue;
                 }
-                if (r.fullscreen) {
+                if (r.isFullscreen()) {
                     lastIsOpaque = true;
                 }
                 if (owner != null && r.app != owner) {
@@ -3358,7 +3369,7 @@ final class ActivityStack {
                 if (r.appToken == token) {
                         return true;
                 }
-                if (r.fullscreen && !r.finishing) {
+                if (r.isFullscreen() && !r.finishing) {
                     return false;
                 }
             }

@@ -15253,7 +15253,7 @@ public final class ActivityManagerService extends ActivityManagerNative
 
         if (app.curAdj != app.setAdj) {
             if (Process.setOomAdj(app.pid, app.curAdj)) {
-                if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(
+                if (DEBUG_OOM_ADJ) Slog.v(
                     TAG, "Set " + app.pid + " " + app.processName +
                     " adj " + app.curAdj + ": " + app.adjType);
                 app.setAdj = app.curAdj;
@@ -15264,7 +15264,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         }
         if (app.setSchedGroup != app.curSchedGroup) {
             app.setSchedGroup = app.curSchedGroup;
-            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                     "Setting process group of " + app.processName
                     + " to " + app.curSchedGroup);
             if (app.waitingToKill != null &&
@@ -15329,7 +15329,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
         }
         if (app.setProcState != app.curProcState) {
-            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                     "Proc state change of " + app.processName
                     + " to " + app.curProcState);
             app.setProcState = app.curProcState;
@@ -15637,7 +15637,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                         && !app.killedByAm) {
                     if (app.trimMemoryLevel < curLevel && app.thread != null) {
                         try {
-                            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+                            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                                     "Trimming memory of " + app.processName
                                     + " to " + curLevel);
                             app.thread.scheduleTrimMemory(curLevel);
@@ -15674,7 +15674,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     if (app.trimMemoryLevel < ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
                             && app.thread != null) {
                         try {
-                            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+                            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                                     "Trimming memory of heavy-weight " + app.processName
                                     + " to " + ComponentCallbacks2.TRIM_MEMORY_BACKGROUND);
                             app.thread.scheduleTrimMemory(
@@ -15692,7 +15692,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                         final int level = ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN;
                         if (app.trimMemoryLevel < level && app.thread != null) {
                             try {
-                                if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+                                if (DEBUG_OOM_ADJ) Slog.v(TAG,
                                         "Trimming memory of bg-ui " + app.processName
                                         + " to " + level);
                                 app.thread.scheduleTrimMemory(level);
@@ -15703,7 +15703,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     }
                     if (app.trimMemoryLevel < fgTrimLevel && app.thread != null) {
                         try {
-                            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+                            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                                     "Trimming memory of fg " + app.processName
                                     + " to " + fgTrimLevel);
                             app.thread.scheduleTrimMemory(fgTrimLevel);
@@ -15729,7 +15729,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     if (app.trimMemoryLevel < ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
                             && app.thread != null) {
                         try {
-                            if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.v(TAG,
+                            if (DEBUG_OOM_ADJ) Slog.v(TAG,
                                     "Trimming memory of ui hidden " + app.processName
                                     + " to " + ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
                             app.thread.scheduleTrimMemory(
