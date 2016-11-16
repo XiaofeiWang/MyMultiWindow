@@ -2470,13 +2470,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
 
         public void setWindowBackground(Drawable drawable) {
-			android.util.Log.d("wangxiaofei", "\nsetWindowBackground begin");
-        	android.util.Log.i("wangxiaofei", "setWindowBackground drawable: " + drawable.getAlpha());
-			StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
-			for(StackTraceElement e:stackElements) {
-				 android.util.Log.d("wangxiaofei", e.toString());
-			}
-			android.util.Log.d("wangxiaofei", "setWindowBackground end\n");
             if (getBackground() != drawable) {
                 setBackgroundDrawable(drawable);
                 if (drawable != null) {

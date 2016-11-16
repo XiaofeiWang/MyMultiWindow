@@ -205,8 +205,8 @@ public final class ActivityManagerService extends ActivityManagerNative
         implements Watchdog.Monitor, BatteryStatsImpl.BatteryCallback {
     private static final String USER_DATA_DIR = "/data/user/";
     static final String TAG = "ActivityManager";
-    static final String TAG_MU = "ActivityManagerServiceMU";
-    static final boolean DEBUG = false;
+    static final String TAG_MU = "ActivityManager";
+    static final boolean DEBUG = true;
     static final boolean localLOGV = DEBUG;
     static final boolean DEBUG_BACKUP = localLOGV || false;
     static final boolean DEBUG_BROADCAST = localLOGV || false;
@@ -3284,6 +3284,14 @@ public final class ActivityManagerService extends ActivityManagerNative
             Binder.restoreCallingIdentity(origId);
 
             r.finishing = wasFinishing;
+
+    		android.util.Log.d(TAG, "\nstartNextMatchingActivity begin");
+    		android.util.Log.d(TAG, "ActivityRecord: " + r);
+    		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+    		for(StackTraceElement e:stackElements) {
+    			android.util.Log.d(TAG, e.toString());
+    		}
+    		android.util.Log.d(TAG, "startNextMatchingActivity end\n");
             if (res != ActivityManager.START_SUCCESS) {
                 return false;
             }

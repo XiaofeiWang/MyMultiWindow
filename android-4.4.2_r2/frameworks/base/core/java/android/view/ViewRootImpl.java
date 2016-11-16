@@ -2864,6 +2864,14 @@ public final class ViewRootImpl implements ViewParent,
             mInputEventReceiver.dispose();
             mInputEventReceiver = null;
         }
+
+    	/*android.util.Log.d("wangxiaofei", "\ndispatchDetachedFromWindow begin");
+    	android.util.Log.d("wangxiaofei", "mAttachInfo: " + mAttachInfo);
+    	StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+    	for(StackTraceElement e:stackElements) {
+    		android.util.Log.d("wangxiaofei", e.toString());
+    	}
+    	android.util.Log.d("wangxiaofei", "dispatchDetachedFromWindow end\n");*/
         try {
             mWindowSession.remove(mWindow);
         } catch (RemoteException e) {
@@ -2876,6 +2884,7 @@ public final class ViewRootImpl implements ViewParent,
             mInputChannel = null;
         }
 
+        
         unscheduleTraversals();
     }
 
@@ -5312,6 +5321,13 @@ public final class ViewRootImpl implements ViewParent,
      * @return True, request has been queued. False, request has been completed.
      */
     boolean die(boolean immediate) {
+    	/*android.util.Log.d("wangxiaofei", "\ndoDie begin");
+    	android.util.Log.d("wangxiaofei", "mAttachInfo: " + mAttachInfo);
+    	StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+    	for(StackTraceElement e:stackElements) {
+    		android.util.Log.d("wangxiaofei", e.toString());
+    	}
+    	android.util.Log.d("wangxiaofei", "doDie end\n");*/
         // Make sure we do execute immediately if we are in the middle of a traversal or the damage
         // done by dispatchDetachedFromWindow will cause havoc on return.
         if (immediate && !mIsInTraversal) {

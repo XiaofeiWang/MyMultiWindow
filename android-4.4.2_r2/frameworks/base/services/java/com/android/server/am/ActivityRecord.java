@@ -16,6 +16,7 @@
 
 package com.android.server.am;
 
+import static com.android.server.am.ActivityManagerService.TAG;
 import android.os.Trace;
 import com.android.internal.R.styleable;
 import com.android.internal.app.ResolverActivity;
@@ -565,6 +566,13 @@ final class ActivityRecord {
     }
 
     void makeFinishing() {
+		android.util.Log.d(TAG, "\nmakeFinishing begin");
+		android.util.Log.d(TAG, "ActivityRecord: " + this);
+		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+		for(StackTraceElement e:stackElements) {
+			android.util.Log.d(TAG, e.toString());
+		}
+		android.util.Log.d(TAG, "makeFinishing end\n");
         if (!finishing) {
             finishing = true;
             if (task != null && inHistory) {

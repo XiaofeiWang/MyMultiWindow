@@ -404,9 +404,11 @@ public final class ActivityStackSupervisor {
     boolean allResumedActivitiesIdle() {
         for (int stackNdx = mStacks.size() - 1; stackNdx >= 0; --stackNdx) {
             final ActivityStack stack = mStacks.get(stackNdx);
+            Slog.i(TAG, "allResumedActivitiesIdle stack : " + stack + ", isFrontStack(stack): " + isFrontStack(stack));
             if (!isFrontStack(stack)) {
                 continue;
             }
+            Slog.i(TAG, "stack.mResumedActivity: " + stack.mResumedActivity);
             final ActivityRecord resumedActivity = stack.mResumedActivity;
             if (resumedActivity == null || !resumedActivity.idle) {
                 return false;
