@@ -242,40 +242,51 @@ public final class ActivityStackSupervisor {
         if (mFocusedStack == null) {
             return mHomeStack;
         }
-        switch (mStackState) {
-            case STACK_STATE_HOME_IN_FRONT:
-            case STACK_STATE_HOME_TO_FRONT:
-                return mHomeStack;
-            case STACK_STATE_HOME_IN_BACK:
-            case STACK_STATE_HOME_TO_BACK:
-            default:
-                return mFocusedStack;
-        }
+        /**
+         * Date: Jul 8, 2014
+         * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+         *
+         * Get rid of stack states. There is more than two posibile combination
+         * of stack.
+         */
+        return mFocusedStack;
     }
 
     ActivityStack getLastStack() {
-        switch (mStackState) {
-            case STACK_STATE_HOME_IN_FRONT:
-            case STACK_STATE_HOME_TO_BACK:
-                return mHomeStack;
-            case STACK_STATE_HOME_TO_FRONT:
-            case STACK_STATE_HOME_IN_BACK:
-            default:
-                return mFocusedStack;
-        }
+        /**
+         * Date: Jul 8, 2014
+         * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+         *
+         * Get rid of stack states. There is more than two posibile combination
+         * of stack.
+         * TietoTODO: this function can be removed.
+         */
+        return getFocusedStack();
     }
 
     boolean isFrontStack(ActivityStack stack) {
-        return !(stack.isHomeStack() ^ getFocusedStack().isHomeStack());
+        /**
+         * Date: Jul 8, 2014
+         * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+         *
+         * Silent assumption that always focused stack is front stack.
+         */
+        return stack == getFocusedStack();
     }
 
     void moveHomeStack(boolean toFront) {
         final boolean homeInFront = isFrontStack(mHomeStack);
         if (homeInFront ^ toFront) {
-            if (DEBUG_STACK) Slog.d(TAG, "moveHomeTask: mStackState old=" +
-                    stackStateToString(mStackState) + " new=" + stackStateToString(homeInFront ?
-                    STACK_STATE_HOME_TO_BACK : STACK_STATE_HOME_TO_FRONT));
-            mStackState = homeInFront ? STACK_STATE_HOME_TO_BACK : STACK_STATE_HOME_TO_FRONT;
+           /**
+            * Date: Jul 8, 2014
+            * Copyright (C) 2014 Tieto Poland Sp. z o.o.
+            *
+            * TietoTODO: I think, this method should be removed, as there is more than
+            * two states of stacks.
+            */
+            if (DEBUG_STACK) Slog.d(TAG, "moveHomeTask toFront:" + toFront + "old=" +
+                    mFocusedStack + " new=" + (homeInFront ? mFocusedStack : mHomeStack));
+            setFocusedStack(homeInFront ? mFocusedStack : mHomeStack);
         }
     }
 
@@ -344,11 +355,12 @@ public final class ActivityStackSupervisor {
             if (DEBUG_STACK) Slog.i(TAG, "removeTask: removing stack " + stack);
             mStacks.remove(stack);
             final int stackId = stack.mStackId;
-            final int nextStackId = mWindowManager.removeStack(stackId);
+            int nextStackId = mWindowManager.removeStack(stackId);
             // TODO: Perhaps we need to let the ActivityManager determine the next focus...
             if (mFocusedStack == null || mFocusedStack.mStackId == stackId) {
                 // If this is the last app stack, set mFocusedStack to null.
-                mFocusedStack = nextStackId == HOME_STACK_ID ? null : getStack(nextStackId);
+                nextStackId = mStacks.get(mStacks.size()-1).mStackId;
+                setFocusedStack(getStack(nextStackId));
             }
         }
     }
@@ -1506,7 +1518,8 @@ public final class ActivityStackSupervisor {
                     targetStack.mLastPausedActivity = null;
                     if (DEBUG_TASKS) Slog.d(TAG, "Bring to front target: " + targetStack
                             + " from " + intentActivity);
-                    moveHomeStack(targetStack.isHomeStack());
+                    final ActivityStack lastStack = mFocusedStack;
+                    setFocusedStack(targetStack);
                     if (intentActivity.task.intent == null) {
                         // This task was started because of movement of
                         // the activity based on affinity...  now that we
@@ -1520,7 +1533,6 @@ public final class ActivityStackSupervisor {
                     // to have the same behavior as if a new instance was
                     // being started, which means not bringing it to the front
                     // if the caller is not itself in the front.
-                    final ActivityStack lastStack = getLastStack();
                     ActivityRecord curTop = lastStack == null?
                             null : lastStack.topRunningNonDelayedActivityLocked(notTop);
                     if (curTop != null && (curTop.task != intentActivity.task ||
@@ -1725,7 +1737,7 @@ public final class ActivityStackSupervisor {
         if (r.resultTo == null && !addingToTask
                 && (launchFlags&Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
             targetStack = adjustStackFocus(r);
-            moveHomeStack(targetStack.isHomeStack());
+            setFocusedStack(targetStack);
             if (reuseTask == null) {
                 r.setTask(targetStack.createTaskRecord(getNextTaskId(),
                         newTaskInfo != null ? newTaskInfo : r.info,
@@ -1749,7 +1761,7 @@ public final class ActivityStackSupervisor {
         } else if (sourceRecord != null) {
             TaskRecord sourceTask = sourceRecord.task;
             targetStack = sourceTask.stack;
-            moveHomeStack(targetStack.isHomeStack());
+            setFocusedStack(targetStack);
             if (!addingToTask &&
                     (launchFlags&Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0) {
                 // In this case, we are adding the activity to an existing
@@ -1803,7 +1815,7 @@ public final class ActivityStackSupervisor {
             // of a new task...  just put it in the top task, though these days
             // this case should never happen.
             targetStack = adjustStackFocus(r);
-            moveHomeStack(targetStack.isHomeStack());
+            setFocusedStack(targetStack);
             ActivityRecord prev = targetStack.topActivity();
             r.setTask(prev != null ? prev.task
                     : targetStack.createTaskRecord(getNextTaskId(), r.info, intent, true),

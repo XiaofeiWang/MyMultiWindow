@@ -1037,7 +1037,15 @@ final class ActivityStack {
      * currently can be seen by the user) actually are.
      */
     final boolean ensureActivitiesVisibleLocked(ActivityRecord top, ActivityRecord starting,
-            String onlyThisProcess, int configChanges, boolean forceHomeShown) {
+        String onlyThisProcess, int configChanges, boolean forceHomeShown) {
+		android.util.Log.d(TAG, "\nensureActivitiesVisibleLocked begin");
+		android.util.Log.d(TAG, "top: " + top + ", starting: " + starting + ", forceHomeShown: " + forceHomeShown);
+		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+		for(StackTraceElement e:stackElements) {
+			android.util.Log.d(TAG, e.toString());
+		}
+		android.util.Log.d(TAG, "ensureActivitiesVisibleLocked end\n");
+
         if (DEBUG_VISBILITY) Slog.v(
                 TAG, "ensureActivitiesVisible behind " + top
                 + " configChanges=0x" + Integer.toHexString(configChanges));
@@ -1261,6 +1269,13 @@ final class ActivityStack {
     }
 
     final boolean resumeTopActivityLocked(ActivityRecord prev, Bundle options) {
+		android.util.Log.d(TAG, "\nresumeTopActivityLocked begin");
+		android.util.Log.d(TAG, "prev" + prev + ", options: " + options);
+		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+		for(StackTraceElement e:stackElements) {
+			android.util.Log.d(TAG, e.toString());
+		}
+		android.util.Log.d(TAG, "resumeTopActivityLocked end\n");
         if (ActivityManagerService.DEBUG_LOCKSCREEN) mService.logLockScreen("");
 
         // Find the first activity that is not finishing.
@@ -3063,7 +3078,7 @@ final class ActivityStack {
             return;
         }
 
-        mStackSupervisor.moveHomeStack(isHomeStack());
+        mStackSupervisor.setFocusedStack(tr.stack);
 
         // Shift all activities with this task up to the top
         // of the stack, keeping them in the same internal order.
