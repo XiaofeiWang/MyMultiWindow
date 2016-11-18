@@ -2751,6 +2751,14 @@ public class WindowManagerService extends IWindowManager.Stub
         boolean surfaceChanged = false;
         boolean animating;
 
+		android.util.Log.d(TAG, "\nrelayoutWindow begin");
+		android.util.Log.d(TAG, "session: " + session + ", seq: " + seq);
+		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+		for(StackTraceElement e:stackElements) {
+			android.util.Log.d(TAG, e.toString());
+		}
+		android.util.Log.d(TAG, "ensureActivitiesVisibleLocked end\n");
+
         // if they don't have this permission, mask out the status bar bits
         int systemUiVisibility = 0;
         if (attrs != null) {
@@ -10885,6 +10893,13 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     public boolean relayoutWindow(int stackID, Rect pos) {
+		android.util.Log.d(TAG, "\nrelayoutWindow begin");
+		android.util.Log.d(TAG, "stackID: " + stackID + ", pos: " + pos);
+		StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
+		for(StackTraceElement e:stackElements) {
+			android.util.Log.d(TAG, e.toString());
+		}
+		android.util.Log.d(TAG, "ensureActivitiesVisibleLocked end\n");
         synchronized (mWindowMap) {
             final int numDisplays = mDisplayContents.size();
             for (int displayNdx = 0; displayNdx < numDisplays; ++displayNdx) {

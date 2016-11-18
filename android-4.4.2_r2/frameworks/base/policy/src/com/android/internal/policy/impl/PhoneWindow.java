@@ -2470,6 +2470,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
 
         public void setWindowBackground(Drawable drawable) {
+            if (mMultiWindowDecorView != null) {
+            	mMultiWindowDecorView.setBackground(drawable);
+                drawable = new ColorDrawable(Color.TRANSPARENT);
+            }
             if (getBackground() != drawable) {
                 setBackgroundDrawable(drawable);
                 if (drawable != null) {
@@ -2663,6 +2667,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             final Callback cb = getCallback();
             if (cb != null && !isDestroyed() && mFeatureId < 0) {
                 cb.onWindowFocusChanged(hasWindowFocus);
+            }
+            if (mMultiWindowDecorView != null) {
+                if (hasWindowFocus) {
+                	mMultiWindowDecorView.setFocus();
+                } else {
+                	mMultiWindowDecorView.unsetFocus();
+                }
             }
         }
 

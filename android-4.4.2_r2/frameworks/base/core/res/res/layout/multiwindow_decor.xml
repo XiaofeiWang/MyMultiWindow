@@ -75,7 +75,6 @@
     </RelativeLayout>
     <View
         android:id="@+id/mwBackground"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="@dimen/mw_inner_border"

@@ -2986,7 +2986,7 @@ public final class ActivityThread {
             boolean userLeaving, int configChanges) {
         ActivityClientRecord r = mActivities.get(token);
         if (r != null) {
-            //Slog.v(TAG, "userLeaving=" + userLeaving + " handling pause of " + r);
+            Slog.v(TAG, "userLeaving=" + userLeaving + " handling pause of " + r);
             if (userLeaving) {
                 performUserLeavingActivity(r);
             }
