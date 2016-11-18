@@ -423,8 +423,15 @@ class DisplayContent {
     }
 
     int stackIdFromPoint(int x, int y) {
-        StackBox topBox = mStackBoxes.get(mStackBoxes.size() - 1);
-        return topBox.stackIdFromPoint(x, y);
+        int idx = mStackBoxes.size() -1;
+        for (;idx > -1; idx--) {
+            StackBox sb = mStackBoxes.get(idx);
+            int stackId = sb.stackIdFromPoint(x, y);
+            if (stackId != -1) {
+                return stackId;
+            }
+        }
+        return -1;
     }
 
     void setTouchExcludeRegion(TaskStack focusedStack) {
