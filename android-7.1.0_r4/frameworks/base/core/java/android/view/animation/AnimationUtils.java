@@ -27,7 +27,6 @@ import android.content.res.Resources.Theme;
 import android.content.res.XmlResourceParser;
 import android.content.res.Resources.NotFoundException;
 import android.util.AttributeSet;
-import android.util.Slog;
 import android.util.Xml;
 import android.os.SystemClock;
 
@@ -102,17 +101,11 @@ public class AnimationUtils {
      */
     public static Animation loadAnimation(Context context, @AnimRes int id)
             throws NotFoundException {
-        android.util.Log.d("AppTransition", "\nloadAnimation begin");
-        StackTraceElement[] stackElements = java.lang.Thread.currentThread().getStackTrace();
-        for(StackTraceElement e:stackElements) {
-            android.util.Log.d("AppTransition", e.toString());
-        }
-        android.util.Log.d("AppTransition", "loadAnimation end\n");
-        Animation newAnimation = null;
+
         XmlResourceParser parser = null;
         try {
             parser = context.getResources().getAnimation(id);
-            newAnimation =  createAnimationFromXml(context, parser);
+            return createAnimationFromXml(context, parser);
         } catch (XmlPullParserException ex) {
             NotFoundException rnf = new NotFoundException("Can't load animation resource ID #0x" +
                     Integer.toHexString(id));
@@ -126,14 +119,6 @@ public class AnimationUtils {
         } finally {
             if (parser != null) parser.close();
         }
-
-        if (newAnimation != null) {
-            Slog.v("AppTransition", "before loadAnimation newAnimation.getDuration(): " + newAnimation.getDuration());
-            newAnimation.setDuration(10000);
-            Slog.v("AppTransition", "after loadAnimation newAnimation.getDuration(): " + newAnimation.getDuration());
-        }
-        Slog.v("AppTransition", "loadAnimation newAnimation: " + newAnimation);
-        return newAnimation;
     }
 
     private static Animation createAnimationFromXml(Context c, XmlPullParser parser)

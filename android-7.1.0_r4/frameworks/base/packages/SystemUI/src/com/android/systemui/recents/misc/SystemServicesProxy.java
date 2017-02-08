@@ -90,6 +90,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import android.multiwindow.MultiWindowManager;
+
 /**
  * Acts as a shim around the real system services that we need to access data from, and provides
  * a point of injection when testing UI.
@@ -210,13 +212,14 @@ public class SystemServicesProxy {
         mUm = UserManager.get(context);
         mDisplay = mWm.getDefaultDisplay();
         mRecentsPackage = context.getPackageName();
-        android.util.Log.i("wangxiaofei", "systemUI freeform value: " + Settings.Global.getInt(context.getContentResolver(),
-                DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 0));
-
         mHasFreeformWorkspaceSupport =
                 mPm.hasSystemFeature(PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT) ||
                         Settings.Global.getInt(context.getContentResolver(),
-                                DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 1) != 0;
+                                DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 0) != 0;
+        if (MultiWindowManager.isSupported()) {
+            mHasFreeformWorkspaceSupport = true;
+        }
+
         mIsSafeMode = mPm.isSafeMode();
 
         // Get the dummy thumbnail width/heights

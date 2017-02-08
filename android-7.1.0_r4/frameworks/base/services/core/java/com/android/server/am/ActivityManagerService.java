@@ -13109,13 +13109,11 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     private void retrieveSettings() {
         final ContentResolver resolver = mContext.getContentResolver();
-        android.util.Log.i("wangxiaofei", "AMS freeform value: " + Settings.Global.getInt(
-                resolver, DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 1));
-
         final boolean freeformWindowManagement =
                 mContext.getPackageManager().hasSystemFeature(FEATURE_FREEFORM_WINDOW_MANAGEMENT)
                         || Settings.Global.getInt(
-                                resolver, DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 1) != 0;
+                                resolver, DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 0) != 0
+                        || android.multiwindow.MultiWindowManager.isSupported();
         final boolean supportsPictureInPicture =
                 mContext.getPackageManager().hasSystemFeature(FEATURE_PICTURE_IN_PICTURE);
 

@@ -53,6 +53,9 @@ import com.android.server.EventLogTags;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
+
 public class TaskStack implements DimLayer.DimLayerUser,
         BoundsAnimationController.AnimateBoundsUser {
     /** Minimum size of an adjusted stack bounds relative to original stack bounds. Used to
@@ -61,6 +64,9 @@ public class TaskStack implements DimLayer.DimLayerUser,
 
     /** Dimming amount for non-focused stack when stacks are IME-adjusted. */
     private static final float IME_ADJUST_DIM_AMOUNT = 0.25f;
+
+
+    static final int FOCUS_STACK_INFLATE_SIZE = 10;
 
     /** Unique identifier */
     final int mStackId;
@@ -1379,4 +1385,70 @@ public class TaskStack implements DimLayer.DimLayerUser,
     public boolean getBoundsAnimating() {
         return mBoundsAnimating;
     }
+
+    /*
+     * add by wangxiaofei
+     */
+    void adjustForFocusBoundsDraw(final DisplayContent displayContent, final WindowState currentFocusWindow) {
+        if (displayContent == null || (currentFocusWindow == null)) {
+            Slog.i(TAG_WM, "adjustForFocusBoundsDraw displayContent or currentFocusWindow is null");
+            return;
+        }
+
+        WindowStateAnimator winAnimator = currentFocusWindow.mWinAnimator;
+        Task task = currentFocusWindow.getTask();
+        WindowState win = currentFocusWindow;
+        Surface surface = null;
+
+        /*
+         * draw the rect bound
+         */
+        if (winAnimator.mSurfaceController.mSurfaceControl == null || !win.hasDrawnLw()) {
+            Slog.i(TAG_WM, "adjustForFocusBoundsDraw, mSurfaceControl is released or window has not drawn");
+            return;
+        }
+
+        if (surface == null) {
+            surface = new Surface();
+            try {
+                surface.copyFrom(winAnimator.mSurfaceController.mSurfaceControl);
+            } catch (IllegalArgumentException e) {
+                Slog.e(TAG_WM, "copyFrom: " + e.toString());
+            } catch (Surface.OutOfResourcesException e) {
+                Slog.e(TAG_WM, "copyFrom: " + e.toString());
+            } catch (NullPointerException e) {
+                Slog.e(TAG_WM, "copyFrom: " + e.toString());
+            }
+        }
+
+        if (surface != null) {
+            Rect frame = win.getFrameLw();
+            frame.inset(-FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE);
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+            paint.setColor(0xffff0000);
+            paint.setStrokeWidth(1.0f);
+            Canvas c = null;
+
+            try {
+                c = surface.lockCanvas(frame);
+                c.drawLine(frame.left, frame.top, frame.right, frame.top, paint);
+                c.drawLine(frame.left, frame.top, frame.left, frame.bottom, paint);
+                c.drawLine(frame.left, frame.bottom, frame.right, frame.bottom, paint);
+                c.drawLine(frame.right, frame.top, frame.right, frame.bottom, paint);
+                surface.unlockCanvasAndPost(c);
+            } catch (Exception e) {
+                Slog.e(TAG_WM, "exception, surface = " + surface
+                        + ", canvas = " + c + ", this = " + this, e);
+            } finally {
+                if (surface != null) {
+                    surface.release();
+                    surface = null;
+                }
+            }
+        } else {
+            Slog.i(TAG_WM, "surface is null");
+        }
+    }
+    
 }

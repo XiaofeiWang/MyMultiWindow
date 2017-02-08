@@ -57,7 +57,6 @@ import android.os.Debug;
 import android.os.IBinder;
 import android.os.IRemoteCallback;
 import android.os.RemoteException;
-import android.telecom.Log;
 import android.util.ArraySet;
 import android.util.Slog;
 import android.util.SparseArray;
@@ -92,7 +91,7 @@ import java.util.concurrent.Executors;
 // mOpeningApps and mClosingApps are the lists of tokens that will be
 // made visible or hidden at the next transition.
 public class AppTransition implements Dump {
-    private static final String TAG = "AppTransition";
+    private static final String TAG = TAG_WITH_CLASS_NAME ? "AppTransition" : TAG_WM;
     private static final int CLIP_REVEAL_TRANSLATION_Y_DP = 8;
 
     /** Not set up for a transition. */

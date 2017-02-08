@@ -2410,12 +2410,6 @@ public class SettingsProvider extends ContentProvider {
                     currentVersion = 130;
                 }
 
-                //load defalut settings
-                final SettingsState globalSettings = getGlobalSettingsLocked();
-                globalSettings.insertSettingLocked(
-                        Settings.Global.DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, "1",
-                        SettingsState.SYSTEM_PACKAGE_NAME);
-
                 if (currentVersion != newVersion) {
                     Slog.w("SettingsProvider", "warning: upgrading settings database to version "
                             + newVersion + " left it at "
