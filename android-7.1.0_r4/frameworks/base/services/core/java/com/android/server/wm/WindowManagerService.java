@@ -881,6 +881,7 @@ public class WindowManagerService extends IWindowManager.Stub
     // current configuration.
     private final DisplayContentList mReconfigureOnConfigurationChanged = new DisplayContentList();
 
+    Windowboundmark mWindowboundmark;
     /** Listener to notify activity manager about app transitions. */
     private final WindowManagerInternal.AppTransitionListener mActivityManagerAppTransitionNotifier
             = new WindowManagerInternal.AppTransitionListener() {
@@ -1051,6 +1052,13 @@ public class WindowManagerService extends IWindowManager.Stub
         SurfaceControl.openTransaction();
         try {
             createWatermarkInTransaction();
+        } finally {
+            SurfaceControl.closeTransaction();
+        }
+
+        SurfaceControl.openTransaction();
+        try {
+            mWindowboundmark = new Windowboundmark(getDefaultDisplayContentLocked().getDisplay(), mFxSession);
         } finally {
             SurfaceControl.closeTransaction();
         }
@@ -9828,6 +9836,13 @@ public class WindowManagerService extends IWindowManager.Stub
 
             adjustForImeIfNeeded(displayContent);
 
+            /*if ((mCurrentFocus != null) && (mCurrentFocus.getTask() != null)) {
+                mCurrentFocus.getTask().mStack.adjustForFocusBoundsDraw(displayContent, mCurrentFocus);
+            }*/
+
+            if (mCurrentFocus != null) {
+                mWindowboundmark.setWindowToDraw(mCurrentFocus);
+            }
             Trace.traceEnd(Trace.TRACE_TAG_WINDOW_MANAGER);
             return true;
         }

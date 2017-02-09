@@ -597,6 +597,10 @@ class WindowSurfacePlacer {
                     mService.mRotation);
         }
 
+        if (mService.mWindowboundmark != null) {
+            mService.mWindowboundmark.positionSurface(defaultDw, defaultDh);
+        }
+
         boolean focusDisplayed = false;
 
         for (int displayNdx = 0; displayNdx < numDisplays; ++displayNdx) {

@@ -12,6 +12,6 @@ import android.os.SystemProperties;
 public class MultiWindowManager {
     private static final boolean FEATURE_SUPPORTED = SystemProperties.get("persist.sys.multiwindow_enable").equals("1");
     public static boolean isSupported() {
-        return FEATURE_SUPPORTED;
+        return true;
     }
 }
