@@ -1055,14 +1055,6 @@ public class WindowManagerService extends IWindowManager.Stub
         } finally {
             SurfaceControl.closeTransaction();
         }
-
-        SurfaceControl.openTransaction();
-        try {
-            mWindowboundmark = new Windowboundmark(getDefaultDisplayContentLocked().getDisplay(), mFxSession);
-        } finally {
-            SurfaceControl.closeTransaction();
-        }
-
         showEmulatorDisplayOverlayIfNeeded();
     }
 
@@ -7719,6 +7711,7 @@ public class WindowManagerService extends IWindowManager.Stub
             }
         }
         if (taskId >= 0) {
+            displayContent.mFreeFromWindowBoundController.setFocusTask(taskId);
             try {
                 mActivityManager.setFocusedTask(taskId);
             } catch(RemoteException e) {}
@@ -9836,13 +9829,6 @@ public class WindowManagerService extends IWindowManager.Stub
 
             adjustForImeIfNeeded(displayContent);
 
-            /*if ((mCurrentFocus != null) && (mCurrentFocus.getTask() != null)) {
-                mCurrentFocus.getTask().mStack.adjustForFocusBoundsDraw(displayContent, mCurrentFocus);
-            }*/
-
-            if (mCurrentFocus != null) {
-                mWindowboundmark.setWindowToDraw(mCurrentFocus);
-            }
             Trace.traceEnd(Trace.TRACE_TAG_WINDOW_MANAGER);
             return true;
         }

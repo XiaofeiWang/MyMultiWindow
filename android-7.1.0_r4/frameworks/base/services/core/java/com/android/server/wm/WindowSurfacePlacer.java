@@ -597,8 +597,8 @@ class WindowSurfacePlacer {
                     mService.mRotation);
         }
 
-        if (mService.mWindowboundmark != null) {
-            mService.mWindowboundmark.positionSurface(defaultDw, defaultDh);
+        if (mService.getDefaultDisplayContentLocked() != null) {
+            mService.getDefaultDisplayContentLocked().mFreeFromWindowBoundController.positionBound(defaultDw, defaultDh);
         }
 
         boolean focusDisplayed = false;

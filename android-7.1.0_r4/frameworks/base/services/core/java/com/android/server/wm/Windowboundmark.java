@@ -3,9 +3,11 @@ package com.android.server.wm;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WM;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.Region;
 import android.util.Slog;
 import android.view.Display;
 import android.view.Surface.OutOfResourcesException;
@@ -18,10 +20,11 @@ public class Windowboundmark {
 
     private final Display mDisplay;
     private final Paint mBoundPaint;
+    private int mLastDW;
+    private int mLastDH;
 
     private final SurfaceControl mSurfaceControl;
     private final Surface mSurface = new Surface();
-    private Rect mLastBound = new Rect();
     private Rect mBound = new Rect();
     private boolean mDrawNeeded;
     private boolean mClearDrawNeeded;
@@ -47,24 +50,19 @@ public class Windowboundmark {
         mSurfaceControl = ctrl;
     }
 
-    void positionSurface(int dw, int dh) {
-        //mSurfaceControl.setSize(dw, dh);
-        mDrawNeeded = true;
-    }
-
     /*
      * @param windowState indicated the current foucst window to draw the bound, if it is null, we will clear
      *        the bound
      */
-    void setWindowToDraw(WindowState windowState) {
-        if (windowState == null) {
+    void seBoundToDraw(Rect bound, boolean clearDraw) {
+        mBound.set(bound);
+        mBound.inset(-FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE,
+                -FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE);
+
+        if (clearDraw) {
             mClearDrawNeeded = true;
             clearDrawIfNeeded();
         } else {
-            mLastBound.set(mBound);
-            mBound.set(windowState.getFrameLw());
-            mBound.inset(-FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE,
-                    -FOCUS_STACK_INFLATE_SIZE, -FOCUS_STACK_INFLATE_SIZE);
             mDrawNeeded = true;
             drawIfNeeded();
         }
@@ -76,6 +74,16 @@ public class Windowboundmark {
         }
     }
 
+    void positionSurface(int dw, int dh) {
+        if (mLastDW == dw && mLastDH == dh) {
+            return;
+        }
+        mLastDW = dw;
+        mLastDH = dh;
+        mSurfaceControl.setSize(dw, dh);
+        mDrawNeeded = true;
+    }
+
     void drawIfNeeded() {
         if (mDrawNeeded) {
             mDrawNeeded = false;
@@ -83,11 +91,25 @@ public class Windowboundmark {
             Canvas c = null;
 
             try {
-                c = mSurface.lockCanvas(mBound);
-                c.drawLine(mBound.left, mBound.top, mBound.right, mBound.top, mBoundPaint);
-                c.drawLine(mBound.left, mBound.top, mBound.left, mBound.bottom, mBoundPaint);
-                c.drawLine(mBound.left, mBound.bottom, mBound.right, mBound.bottom, mBoundPaint);
-                c.drawLine(mBound.right, mBound.top, mBound.right, mBound.bottom, mBoundPaint);
+                Rect dirty = new Rect(0, 0, mLastDW, mLastDH);
+                c = mSurface.lockCanvas(dirty);
+
+                // Top
+                c.clipRect(new Rect(mBound.left, mBound.top, mBound.left + mBound.width(), mBound.top + FOCUS_STACK_INFLATE_SIZE), Region.Op.REPLACE);
+                c.drawColor(Color.RED);
+
+                // Left
+                c.clipRect(new Rect(mBound.left, mBound.top, mBound.left + FOCUS_STACK_INFLATE_SIZE, mBound.bottom), Region.Op.REPLACE);
+                c.drawColor(Color.RED);
+
+                // Right
+                c.clipRect(new Rect(mBound.right - FOCUS_STACK_INFLATE_SIZE, mBound.top, mBound.right, mBound.bottom), Region.Op.REPLACE);
+                c.drawColor(Color.RED);
+
+                // Bottom
+                c.clipRect(new Rect(mBound.left,  mBound.bottom - FOCUS_STACK_INFLATE_SIZE, mBound.right, mBound.bottom), Region.Op.REPLACE);
+                c.drawColor(Color.RED);
+
                 mSurface.unlockCanvasAndPost(c);
             } catch (Exception e) {
                 Slog.e(TAG_WM, "exception, surface = " + mSurface

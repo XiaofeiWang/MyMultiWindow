@@ -116,6 +116,8 @@ class DisplayContent {
 
     final ArrayList<WindowState> mTapExcludedWindows = new ArrayList<>();
 
+    final FreeFromWindowBoundController mFreeFromWindowBoundController;
+
     /**
      * @param display May not be null.
      * @param service You know.
@@ -130,6 +132,7 @@ class DisplayContent {
         initializeDisplayBaseInfo();
         mDividerControllerLocked = new DockedStackDividerController(service, this);
         mDimLayerController = new DimLayerController(this);
+        mFreeFromWindowBoundController = new FreeFromWindowBoundController(service, this);
     }
 
     int getDisplayId() {
