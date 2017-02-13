@@ -28,6 +28,7 @@ import android.os.UserHandle;
 import android.util.Log;
 
 import com.android.systemui.stackdivider.Divider;
+import com.android.systemui.stackdivider.WindowResizeView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +57,8 @@ public class SystemUIApplication extends Application {
             com.android.systemui.keyboard.KeyboardUI.class,
             com.android.systemui.tv.pip.PipUI.class,
             com.android.systemui.shortcut.ShortcutKeyDispatcher.class,
-            com.android.systemui.VendorServices.class
+            com.android.systemui.VendorServices.class,
+            WindowResizeView.class
     };
 
     /**

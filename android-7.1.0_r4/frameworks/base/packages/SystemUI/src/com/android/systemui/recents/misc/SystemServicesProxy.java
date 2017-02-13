@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.Random;
 
 import android.multiwindow.MultiWindowManager;
+import android.view.IWindowResizeStackListener;
 
 /**
  * Acts as a shim around the real system services that we need to access data from, and provides
@@ -1053,6 +1054,16 @@ public class SystemServicesProxy {
 
         try {
             WindowManagerGlobal.getWindowManagerService().registerDockedStackListener(listener);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void registerWindowStackStackListener(IWindowResizeStackListener listener) {
+        if (mWm == null) return;
+
+        try {
+            WindowManagerGlobal.getWindowManagerService().registerWindowStackStackListener(listener);
         } catch (Exception e) {
             e.printStackTrace();
         }

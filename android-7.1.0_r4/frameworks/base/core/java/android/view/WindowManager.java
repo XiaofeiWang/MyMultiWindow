@@ -650,6 +650,11 @@ public interface WindowManager extends ViewManager {
          */
         public static final int TYPE_SCREENSHOT = FIRST_SYSTEM_WINDOW + 36;
 
+        /*
+         * Widow type: for window resize view
+         */
+        public static final int TYPE_WINDOW_RESIZE = FIRST_SYSTEM_WINDOW + 37;
+
         /**
          * End of types of system windows.
          */

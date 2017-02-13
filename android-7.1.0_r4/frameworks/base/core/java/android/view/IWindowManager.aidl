@@ -46,6 +46,8 @@ import android.view.IInputFilter;
 import android.view.AppTransitionAnimationSpec;
 import android.view.WindowContentFrameStats;
 
+import android.view.IWindowResizeStackListener;
+
 /**
  * System private interface to the window manager.
  *
@@ -427,4 +429,6 @@ interface IWindowManager
      * Remove the input consumer for wallpaper events.
      */
     void removeWallpaperInputConsumer();
+
+    void registerWindowStackStackListener(IWindowResizeStackListener listener);
 }

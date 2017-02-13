@@ -881,7 +881,6 @@ public class WindowManagerService extends IWindowManager.Stub
     // current configuration.
     private final DisplayContentList mReconfigureOnConfigurationChanged = new DisplayContentList();
 
-    Windowboundmark mWindowboundmark;
     /** Listener to notify activity manager about app transitions. */
     private final WindowManagerInternal.AppTransitionListener mActivityManagerAppTransitionNotifier
             = new WindowManagerInternal.AppTransitionListener() {
@@ -11184,6 +11183,15 @@ public class WindowManagerService extends IWindowManager.Stub
         // TODO(multi-display): The listener is registered on the default display only.
         getDefaultDisplayContentLocked().mDividerControllerLocked.registerDockedStackListener(
                 listener);
+    }
+
+    @Override
+    public void registerWindowStackStackListener(IWindowResizeStackListener listener) {
+        if (!checkCallingPermission(android.Manifest.permission.REGISTER_WINDOW_MANAGER_LISTENERS,
+                "registerDockedStackListener()")) {
+            return;
+        }
+        getDefaultDisplayContentLocked().mFreeFromWindowBoundController.registerWindowStackStackListener(listener);
     }
 
     @Override

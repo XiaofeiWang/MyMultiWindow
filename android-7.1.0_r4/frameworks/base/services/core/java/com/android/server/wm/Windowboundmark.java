@@ -1,17 +1,18 @@
 package com.android.server.wm;
 
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WM;
-
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.util.Slog;
 import android.view.Display;
-import android.view.Surface.OutOfResourcesException;
 import android.view.Surface;
+import android.view.Surface.OutOfResourcesException;
 import android.view.SurfaceControl;
 import android.view.SurfaceSession;
 
@@ -93,6 +94,12 @@ public class Windowboundmark {
             try {
                 Rect dirty = new Rect(0, 0, mLastDW, mLastDH);
                 c = mSurface.lockCanvas(dirty);
+
+                Paint clipPaint = new Paint();
+                clipPaint.setAntiAlias(true);
+                clipPaint.setStyle(Paint.Style.STROKE);
+                clipPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                c.drawPaint(clipPaint);
 
                 // Top
                 c.clipRect(new Rect(mBound.left, mBound.top, mBound.left + mBound.width(), mBound.top + FOCUS_STACK_INFLATE_SIZE), Region.Op.REPLACE);
