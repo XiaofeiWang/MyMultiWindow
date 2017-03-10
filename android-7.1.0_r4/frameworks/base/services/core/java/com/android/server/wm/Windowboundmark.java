@@ -85,43 +85,48 @@ public class Windowboundmark {
         mDrawNeeded = true;
     }
 
+    void drawWithDirtyRect(final Rect rect) {
+        Canvas c = null;
+
+        try {
+            c = mSurface.lockCanvas(rect);
+            Paint clipPaint = new Paint();
+            clipPaint.setAntiAlias(true);
+            clipPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            c.drawPaint(clipPaint);
+
+            c.clipRect(rect, Region.Op.REPLACE);
+            c.drawColor(Color.RED);
+            mSurface.unlockCanvasAndPost(c);
+        } catch (Exception e) {
+            Slog.e(TAG_WM, "exception, surface = " + mSurface
+                    + ", canvas = " + c + ", this = " + this, e);
+        }
+    }
+
     void drawIfNeeded() {
         if (mDrawNeeded) {
             mDrawNeeded = false;
 
-            Canvas c = null;
+            // Top
+            Rect topRect = new Rect(mBound.left, mBound.top, mBound.right, mBound.top + FOCUS_STACK_INFLATE_SIZE);
+            topRect.intersect(0, 0, mLastDW, mLastDH);
+            drawWithDirtyRect(topRect);
 
-            try {
-                Rect dirty = new Rect(0, 0, mLastDW, mLastDH);
-                c = mSurface.lockCanvas(dirty);
+            // Left
+            Rect leftRect = new Rect(mBound.left - FOCUS_STACK_INFLATE_SIZE , mBound.top - FOCUS_STACK_INFLATE_SIZE , mBound.left + FOCUS_STACK_INFLATE_SIZE, mBound.bottom + FOCUS_STACK_INFLATE_SIZE);
+            leftRect.intersect(0, 0, mLastDW, mLastDH);
+            drawWithDirtyRect(leftRect);
 
-                Paint clipPaint = new Paint();
-                clipPaint.setAntiAlias(true);
-                clipPaint.setStyle(Paint.Style.STROKE);
-                clipPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                c.drawPaint(clipPaint);
+            // Right
+            Rect rightRect = new Rect(mBound.right, mBound.top - FOCUS_STACK_INFLATE_SIZE, mBound.right + FOCUS_STACK_INFLATE_SIZE, mBound.bottom + FOCUS_STACK_INFLATE_SIZE);
+            rightRect.intersect(0, 0, mLastDW, mLastDH);
+            drawWithDirtyRect(rightRect);
 
-                // Top
-                c.clipRect(new Rect(mBound.left, mBound.top, mBound.left + mBound.width(), mBound.top + FOCUS_STACK_INFLATE_SIZE), Region.Op.REPLACE);
-                c.drawColor(Color.RED);
-
-                // Left
-                c.clipRect(new Rect(mBound.left, mBound.top, mBound.left + FOCUS_STACK_INFLATE_SIZE, mBound.bottom), Region.Op.REPLACE);
-                c.drawColor(Color.RED);
-
-                // Right
-                c.clipRect(new Rect(mBound.right - FOCUS_STACK_INFLATE_SIZE, mBound.top, mBound.right, mBound.bottom), Region.Op.REPLACE);
-                c.drawColor(Color.RED);
-
-                // Bottom
-                c.clipRect(new Rect(mBound.left,  mBound.bottom - FOCUS_STACK_INFLATE_SIZE, mBound.right, mBound.bottom), Region.Op.REPLACE);
-                c.drawColor(Color.RED);
-
-                mSurface.unlockCanvasAndPost(c);
-            } catch (Exception e) {
-                Slog.e(TAG_WM, "exception, surface = " + mSurface
-                        + ", canvas = " + c + ", this = " + this, e);
-            }
+            // Bottom
+            Rect bottomRect = new Rect(mBound.left, mBound.bottom, mBound.right, mBound.bottom + FOCUS_STACK_INFLATE_SIZE);
+            bottomRect.intersect(0, 0, mLastDW, mLastDH);
+            drawWithDirtyRect(bottomRect);
         }
     }
 }

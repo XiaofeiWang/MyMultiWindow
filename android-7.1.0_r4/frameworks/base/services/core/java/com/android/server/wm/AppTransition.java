@@ -42,6 +42,7 @@ import static com.android.internal.R.styleable.WindowAnimation_wallpaperOpenExit
 import static com.android.server.wm.AppWindowAnimator.PROLONG_ANIMATION_AT_START;
 import static com.android.server.wm.WindowManagerDebugConfig.DEBUG_ANIM;
 import static com.android.server.wm.WindowManagerDebugConfig.DEBUG_APP_TRANSITIONS;
+import static com.android.server.wm.WindowManagerDebugConfig.DEBUG_LAYERS;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WITH_CLASS_NAME;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WM;
 import static com.android.server.wm.WindowStateAnimator.STACK_CLIP_NONE;
@@ -1936,8 +1937,8 @@ public class AppTransition implements Dump {
         if (DEBUG_APP_TRANSITIONS) Slog.v(TAG, "Prepare app transition:"
                 + " transit=" + appTransitionToString(transit)
                 + " " + this
-                + " alwaysKeepCurrent=" + alwaysKeepCurrent
-                + " Callers=" + Debug.getCallers(3));
+                + " alwaysKeepCurrent=" + alwaysKeepCurrent);
+        Slog.v(TAG_WM, "prepareAppTransitionLocked: ",new RuntimeException("here").fillInStackTrace());
         if (!isTransitionSet() || mNextAppTransition == TRANSIT_NONE) {
             setAppTransition(transit);
         } else if (!alwaysKeepCurrent) {

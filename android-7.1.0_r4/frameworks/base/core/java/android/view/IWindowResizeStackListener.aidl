@@ -24,10 +24,12 @@
 
 package android.view;
 
+import android.graphics.Rect;
+
 oneway interface IWindowResizeStackListener {
     /*
     * Will fire when the resize window visibility change
     */
-    void onWindowResizeViewVisibilityChanged(boolean visible);
+    void onWindowResizeViewVisibilityChanged(in boolean visible, in Rect bound);
 }
 

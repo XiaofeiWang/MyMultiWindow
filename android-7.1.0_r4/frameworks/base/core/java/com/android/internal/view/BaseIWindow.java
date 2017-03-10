@@ -113,4 +113,8 @@ public class BaseIWindow extends IWindow.Stub {
     @Override
     public void requestAppKeyboardShortcuts(IResultReceiver receiver, int deviceId) {
     }
+
+    @Override
+    public void dispatchWindowBoundShow(boolean visible) {
+    }
 }

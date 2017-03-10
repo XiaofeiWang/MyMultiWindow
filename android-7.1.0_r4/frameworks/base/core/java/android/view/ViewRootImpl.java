@@ -38,6 +38,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -118,7 +119,7 @@ public final class ViewRootImpl implements ViewParent,
     private static final boolean LOCAL_LOGV = false;
     /** @noinspection PointlessBooleanExpression*/
     private static final boolean DEBUG_DRAW = false || LOCAL_LOGV;
-    private static final boolean DEBUG_LAYOUT = false || LOCAL_LOGV;
+    private static final boolean DEBUG_LAYOUT = true || LOCAL_LOGV;
     private static final boolean DEBUG_DIALOG = false || LOCAL_LOGV;
     private static final boolean DEBUG_INPUT_RESIZE = false || LOCAL_LOGV;
     private static final boolean DEBUG_ORIENTATION = false || LOCAL_LOGV;
@@ -391,6 +392,8 @@ public final class ViewRootImpl implements ViewParent,
     private boolean mRemoved;
 
     private boolean mNeedsHwRendererSetup;
+
+    private boolean mWindowBoundVisible = false;
 
     /**
      * Consistency verifier for debugging purposes.
@@ -970,6 +973,9 @@ public final class ViewRootImpl implements ViewParent,
     void handleAppVisibility(boolean visible) {
         if (mAppVisible != visible) {
             mAppVisible = visible;
+            if (!mAppVisible) {
+                dispatchWindowBoundShow(false);
+            }
             scheduleTraversals();
             if (!mAppVisible) {
                 WindowManagerGlobal.trimForeground();
@@ -2907,6 +2913,7 @@ public final class ViewRootImpl implements ViewParent,
 
                 mView.draw(canvas);
 
+                //drawResizeWindowPointer(canvas, dirty);
                 drawAccessibilityFocusedDrawableIfNeeded(canvas);
             } finally {
                 if (!attachInfo.mSetIgnoreDirtyState) {
@@ -2929,6 +2936,19 @@ public final class ViewRootImpl implements ViewParent,
             }
         }
         return true;
+    }
+
+    private void drawResizeWindowPointer(Canvas canvas, Rect dirtyRect) {
+        Rect pointRect = new Rect();
+        pointRect.set(mWinFrame);
+        pointRect.top = pointRect.bottom - 20;
+        pointRect.left = pointRect.right - 20;
+        pointRect.right = pointRect.right + 20;
+        pointRect.bottom = pointRect.bottom + 20;
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setColor(0xFFFF0000);
+        canvas.drawRect(pointRect, paint);
     }
 
     /**
@@ -3385,6 +3405,7 @@ public final class ViewRootImpl implements ViewParent,
     private final static int MSG_DISPATCH_WINDOW_SHOWN = 25;
     private final static int MSG_REQUEST_KEYBOARD_SHORTCUTS = 26;
     private final static int MSG_UPDATE_POINTER_ICON = 27;
+    private final static int MSG_UPDATE_WINDOW_BOUND = 28;
 
     final class ViewRootHandler extends Handler {
         @Override
@@ -3483,6 +3504,7 @@ public final class ViewRootImpl implements ViewParent,
                         && args.argi1 == 0) {
                     break;
                 }
+                break;
                 } // fall through...
             case MSG_RESIZED_REPORT:
                 if (mAdded) {
@@ -3554,6 +3576,13 @@ public final class ViewRootImpl implements ViewParent,
             case MSG_WINDOW_FOCUS_CHANGED: {
                 if (mAdded) {
                     boolean hasWindowFocus = msg.arg1 != 0;
+                    /*
+                     * update the window bound
+                     */
+                    if (hasWindowFocus) {
+                        dispatchWindowBoundShow(false);
+                    }
+
                     mAttachInfo.mHasWindowFocus = hasWindowFocus;
 
                     profileRendering(hasWindowFocus);
@@ -3691,6 +3720,12 @@ public final class ViewRootImpl implements ViewParent,
             case MSG_UPDATE_POINTER_ICON: {
                 MotionEvent event = (MotionEvent) msg.obj;
                 resetPointerIcon(event);
+            } break;
+            case MSG_UPDATE_WINDOW_BOUND:{
+                final boolean visible = (msg.arg1 != 0);
+                if (mView != null) {
+                    mView.onUpdateWindowBound(visible);
+                }
             } break;
             }
         }
@@ -6012,6 +6047,15 @@ public final class ViewRootImpl implements ViewParent,
         mHandler.sendMessage(msg);
     }
 
+    public void dispatchWindowBoundShow(boolean visible) {
+        if (mWindowBoundVisible != visible) {
+            mWindowBoundVisible = visible;
+            Message msg = mHandler.obtainMessage(MSG_UPDATE_WINDOW_BOUND);
+            msg.arg1 = visible ? 1 : 0;
+            mHandler.sendMessage(msg);
+        }
+    }
+
     /**
      * Represents a pending input event that is waiting in a queue.
      *
@@ -7151,6 +7195,14 @@ public final class ViewRootImpl implements ViewParent,
             ViewRootImpl viewAncestor = mViewAncestor.get();
             if (viewAncestor != null) {
                 viewAncestor.dispatchRequestKeyboardShortcuts(receiver, deviceId);
+            }
+        }
+
+        @Override
+        public void dispatchWindowBoundShow(boolean visible) {
+            ViewRootImpl viewAncestor = mViewAncestor.get();
+            if (viewAncestor != null) {
+                viewAncestor.dispatchWindowBoundShow(visible);
             }
         }
     }

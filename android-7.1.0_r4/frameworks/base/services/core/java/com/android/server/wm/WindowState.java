@@ -107,6 +107,7 @@ import static com.android.server.wm.WindowManagerDebugConfig.DEBUG_RESIZE;
 import static com.android.server.wm.WindowManagerDebugConfig.DEBUG_VISIBILITY;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WITH_CLASS_NAME;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WM;
+import static android.view.WindowManager.LayoutParams.TYPE_WINDOW_RESIZE;
 
 class WindowList extends ArrayList<WindowState> {
     WindowList() {}
@@ -848,6 +849,9 @@ final class WindowState implements WindowManagerPolicy.WindowState {
             if (!mFrame.equals(mLastFrame)) {
                 mMovedByResize = true;
             }
+        } else if (mAttrs.type == TYPE_WINDOW_RESIZE) {
+            mDisplayContent.mFreeFromWindowBoundController.updateWindowResizeView(mFrame);
+            mContentFrame.set(mFrame);
         } else {
             mContentFrame.set(Math.max(mContentFrame.left, mFrame.left),
                     Math.max(mContentFrame.top, mFrame.top),
@@ -2946,5 +2950,18 @@ final class WindowState implements WindowManagerPolicy.WindowState {
 
     public boolean isRtl() {
         return mMergedConfiguration.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+    }
+
+    void dispatchWindowBoundShow(boolean visible) {
+        try {
+            mClient.dispatchWindowBoundShow(visible);
+        } catch (RemoteException e) {
+            // Ignore if it has already been removed (usually because
+            // we are doing this as part of processing a death note.)
+        }
+    }
+
+    public boolean isFastStartingWindow() {
+        return (mAttrs.type == WindowManager.LayoutParams.TYPE_APPLICATION_STARTING) && (mAttrs.getTitle().equals("FastStarting"));
     }
 }

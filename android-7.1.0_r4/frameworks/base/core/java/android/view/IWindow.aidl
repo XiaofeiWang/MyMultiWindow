@@ -96,4 +96,9 @@ oneway interface IWindow {
      * Called when Keyboard Shortcuts are requested for the window.
      */
     void requestAppKeyboardShortcuts(IResultReceiver receiver, int deviceId);
+
+    /**
+     * Called for windows when the stack is freeform and focused.
+     */
+    void dispatchWindowBoundShow(boolean visible);
 }

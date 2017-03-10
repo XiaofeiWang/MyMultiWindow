@@ -155,6 +155,7 @@ class AppWindowToken extends WindowToken {
     }
 
     void sendAppVisibilityToClients() {
+        Slog.v(TAG_WM, "sendAppVisibilityToClients: ",new RuntimeException("here").fillInStackTrace());
         final int N = allAppWindows.size();
         for (int i=0; i<N; i++) {
             WindowState win = allAppWindows.get(i);

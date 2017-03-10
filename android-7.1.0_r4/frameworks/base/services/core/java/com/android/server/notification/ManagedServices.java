@@ -344,7 +344,7 @@ abstract public class ManagedServices {
     }
 
     private void rebuildRestoredPackages() {
-        mRestoredPackages.clear();
+        ArraySet<String> restoredPackages = new ArraySet<>();
         mSnoozingForCurrentProfiles.clear();
         String secureSettingName = restoredSettingName(mConfig.secureSettingName);
         String secondarySettingName = mConfig.secondarySettingName == null
@@ -358,8 +358,13 @@ abstract public class ManagedServices {
                 names.addAll(loadComponentNamesFromSetting(secondarySettingName, userIds[i]));
             }
             for (ComponentName name : names) {
-                mRestoredPackages.add(name.getPackageName());
+                restoredPackages.add(name.getPackageName());
             }
+        }
+
+        synchronized (mRestoredPackages) {
+            mRestoredPackages.clear();//empty the ArraySet<String>
+            mRestoredPackages.addAll(restoredPackages);
         }
     }
 

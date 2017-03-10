@@ -51,6 +51,7 @@ import android.graphics.drawable.Drawable;
 import android.os.RemoteException;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Slog;
 import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.ContextThemeWrapper;
@@ -2387,6 +2388,26 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
             } else {
                 super.onGetContentRect(mode, view, outRect);
             }
+        }
+    }
+
+    @Override
+    public void onUpdateWindowBound(boolean visible) {
+        if (mContentRoot != null) {
+            //top boudn view
+            setViewVisibility(mContentRoot.findViewById(R.id.bound_top), visible ? View.VISIBLE : View.GONE);
+            //left bound view
+            setViewVisibility(mContentRoot.findViewById(R.id.bound_left), visible ? View.VISIBLE : View.GONE);
+            //right bound view
+            setViewVisibility(mContentRoot.findViewById(R.id.bound_right), visible ? View.VISIBLE : View.GONE);
+            //bottom bound view
+            setViewVisibility(mContentRoot.findViewById(R.id.bound_bottom), visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    void setViewVisibility(View view, int visibility) {
+        if (view != null) {
+            view.setVisibility(visibility);
         }
     }
 }

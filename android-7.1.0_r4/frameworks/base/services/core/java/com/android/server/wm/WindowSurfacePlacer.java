@@ -597,10 +597,6 @@ class WindowSurfacePlacer {
                     mService.mRotation);
         }
 
-        if (mService.getDefaultDisplayContentLocked() != null) {
-            mService.getDefaultDisplayContentLocked().mFreeFromWindowBoundController.positionBound(defaultDw, defaultDh);
-        }
-
         boolean focusDisplayed = false;
 
         for (int displayNdx = 0; displayNdx < numDisplays; ++displayNdx) {
@@ -1305,6 +1301,7 @@ class WindowSurfacePlacer {
 
     private void handleClosingApps(int transit, LayoutParams animLp, boolean voiceInteraction,
             LayerAndToken layerAndToken) {
+        Slog.v(TAG_WM, "handleClosingApps: ",new RuntimeException("here").fillInStackTrace());
         final int appsCount;
         appsCount = mService.mClosingApps.size();
         for (int i = 0; i < appsCount; i++) {

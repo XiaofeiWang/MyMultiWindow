@@ -1562,6 +1562,10 @@
   <java-symbol type="id" name="title_container" />
   <java-symbol type="id" name="two" />
   <java-symbol type="id" name="zero" />
+  <java-symbol type="id" name="bound_left" />
+  <java-symbol type="id" name="bound_top" />
+  <java-symbol type="id" name="bound_right" />
+  <java-symbol type="id" name="bound_bottom" />
   <java-symbol type="integer" name="config_carDockRotation" />
   <java-symbol type="integer" name="config_defaultUiModeType" />
   <java-symbol type="integer" name="config_deskDockRotation" />

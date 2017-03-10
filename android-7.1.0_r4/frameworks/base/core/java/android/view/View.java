@@ -23889,4 +23889,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         return mAttachInfo.mTmpLocation[0] == insets.getStableInsetLeft()
                 && mAttachInfo.mTmpLocation[1] == insets.getStableInsetTop();
     }
+
+    public void onUpdateWindowBound(boolean visible) {
+        
+    }
 }

@@ -53,9 +53,6 @@ import com.android.server.EventLogTags;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-
 public class TaskStack implements DimLayer.DimLayerUser,
         BoundsAnimationController.AnimateBoundsUser {
     /** Minimum size of an adjusted stack bounds relative to original stack bounds. Used to
@@ -1381,5 +1378,5 @@ public class TaskStack implements DimLayer.DimLayerUser,
 
     public boolean getBoundsAnimating() {
         return mBoundsAnimating;
-    }  
+    }
 }

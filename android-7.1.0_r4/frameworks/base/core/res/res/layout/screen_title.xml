@@ -18,34 +18,79 @@
 This is an optimized layout for a screen, with the minimum set of features
 enabled.
 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true">
-    <!-- Popout bar for action modes -->
-    <ViewStub android:id="@+id/action_mode_bar_stub"
-              android:inflatedId="@+id/action_mode_bar"
-              android:layout="@layout/action_mode_bar"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:theme="?attr/actionBarTheme" />
-    <FrameLayout
-        android:layout_width="match_parent" 
-        android:layout_height="?android:attr/windowTitleSize"
-        style="?android:attr/windowTitleBackgroundStyle">
-        <TextView android:id="@android:id/title" 
-            style="?android:attr/windowTitleStyle"
-            android:background="@null"
-            android:fadingEdge="horizontal"
-            android:gravity="center_vertical"
+    <View android:id="@+id/bound_top"
+        android:layout_width="match_parent"
+        android:layout_height="2dip"
+        android:background="#FFFF0000"
+        android:visibility="gone"
+        android:layout_alignParentTop="true"
+    />
+
+    <RelativeLayout
+        android:id="@+id/window_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/bound_top">
+
+        <View android:id="@+id/bound_left"
+            android:layout_width="2dip"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:visibility="gone"
+            android:background="#FFFF0000"
+        />
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </FrameLayout>
-    <FrameLayout android:id="@android:id/content"
-        android:layout_width="match_parent" 
-        android:layout_height="0dip"
-        android:layout_weight="1"
-        android:foregroundGravity="fill_horizontal|top"
-        android:foreground="?android:attr/windowContentOverlay" />
-</LinearLayout>
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@id/bound_left"
+            android:orientation="vertical"
+            android:fitsSystemWindows="true">
+            <!-- Popout bar for action modes -->
+            <ViewStub android:id="@+id/action_mode_bar_stub"
+                      android:inflatedId="@+id/action_mode_bar"
+                      android:layout="@layout/action_mode_bar"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:theme="?attr/actionBarTheme" />
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="?android:attr/windowTitleSize"
+                style="?android:attr/windowTitleBackgroundStyle">
+                <TextView android:id="@android:id/title"
+                    style="?android:attr/windowTitleStyle"
+                    android:background="@null"
+                    android:fadingEdge="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </FrameLayout>
+            <FrameLayout android:id="@android:id/content"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="1"
+                android:foregroundGravity="fill_horizontal|top"
+                android:foreground="?android:attr/windowContentOverlay" />
+        </LinearLayout>
 
+        <View android:id="@+id/bound_right"
+            android:layout_width="2dip"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:visibility="gone"
+            android:background="#FFFF0000"
+        />
+    </RelativeLayout>
+
+    <View android:id="@+id/bound_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="2dip"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:background="#FFFF0000"
+    />
+</RelativeLayout>

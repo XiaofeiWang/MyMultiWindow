@@ -432,6 +432,7 @@ public class AppWindowAnimator {
 
     // This must be called while inside a transaction.
     boolean showAllWindowsLocked() {
+        Slog.v(TAG_WM, "showAllWindowsLocked: ",new RuntimeException("here").fillInStackTrace());
         boolean isAnimating = false;
         final int NW = mAllAppWinAnimators.size();
         for (int i=0; i<NW; i++) {
